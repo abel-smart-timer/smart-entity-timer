@@ -1,0 +1,21 @@
+SMART ENTITY TIMER 0.1.1 — ACTUALIZACIÓN DE PRUEBA
+
+Esta versión corrige la cancelación automática cuando la entidad alcanza antes el estado objetivo.
+
+El sensor "Estado del temporizador" NO copia el estado de la luz o switch. Sus valores son:
+- idle: sin temporizador activo
+- active: cuenta regresiva activa
+- executing: ejecutando la orden final
+- error: la orden no pudo completarse o confirmarse
+
+La entidad objetivo se sigue directamente. La versión 0.1.1 conserva el listener de eventos y añade una comprobación ligera cada segundo solamente mientras el temporizador está activo.
+
+Para HAOS:
+1. Respaldar Home Assistant.
+2. Extraer el ZIP de instalación en /config, reemplazando custom_components/smart_entity_timer.
+3. Reiniciar Home Assistant.
+4. Comprobar que el atributo backend_version del sensor sea 0.1.1.
+5. Repetir la prueba de cancelación automática.
+
+Para GitHub:
+Subir las carpetas y archivos del ZIP de actualización conservando sus rutas y confirmar el commit en main.

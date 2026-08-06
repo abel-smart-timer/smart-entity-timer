@@ -2,12 +2,12 @@
 
 Persistent turn-on/turn-off timers for Home Assistant entities.
 
-**Version:** 0.1.0  
+**Version:** 0.1.1  
 **Minimum Home Assistant version:** 2026.7.0
 
 This repository contains the backend integration. The visual Lovelace card will be developed after functional testing of this release.
 
-## What version 0.1.0 does
+## What version 0.1.1 does
 
 Each configuration entry controls one entity and creates:
 
@@ -32,7 +32,7 @@ The timer runs inside Home Assistant, so the dashboard or mobile application doe
 - By default, an expired OFF timer is executed after startup, while an expired ON timer is skipped for safety.
 - Notifications can target one or more Home Assistant notify entities, devices, or areas containing notify entities.
 
-## Supported entity domains in 0.1.0
+## Supported entity domains in 0.1.1
 
 - `switch`
 - `light`
@@ -77,13 +77,15 @@ button.temporizador_a_c_cocina_cancelar
 
 Actual entity IDs are assigned by Home Assistant and may differ.
 
-The status sensor publishes stable attributes for the future card:
+The entity named **Estado del temporizador** reports the timer lifecycle (`idle`, `active`, `executing`, or `error`); it is not a duplicate of the controlled light or switch. Its attributes publish the controlled entity state and stable data for the future card:
 
 ```yaml
 state: active
 attributes:
   target_entity: climate.ac_cocina
   target_entity_name: A/C Cocina
+  target_entity_state: cool
+  target_state_reached: false
   end_action: turn_off
   duration_minutes: 90
   duration_seconds: 5400
@@ -91,7 +93,7 @@ attributes:
   finishes_at: "2026-08-05T05:30:00+00:00"
   can_start: false
   can_cancel: true
-  backend_version: "0.1.0"
+  backend_version: "0.1.1"
   card_api_version: 1
 ```
 
@@ -155,7 +157,7 @@ The runtime stores absolute UTC start and finish timestamps.
 
 ## Development status
 
-Version 0.1.0 is the first backend test release. It has static Python and JSON validation, but it still requires the functional Home Assistant test plan before the card is developed.
+Version 0.1.1 is the current backend test release. It adds a one-second in-memory watchdog while a timer is active, so early target-state changes are detected even if an integration does not deliver the expected state-change callback. It still requires the complete functional Home Assistant test plan before the card is developed.
 
 See:
 
@@ -171,7 +173,7 @@ Official source repository:
 https://github.com/abel-smart-timer/smart-entity-timer
 ```
 
-This package is already prepared for the `abel-smart-timer` GitHub organization. The `codeowners` list is intentionally empty in version 0.1.0 until a personal GitHub username or organization team is selected as the maintainer.
+This package is already prepared for the `abel-smart-timer` GitHub organization. The `codeowners` list is intentionally empty in version 0.1.1 until a personal GitHub username or organization team is selected as the maintainer.
 
 ## License
 
