@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.2 — 2026-08-05
+
+- Fixed expired OFF timers after a Home Assistant restart.
+- Restoration now waits until Home Assistant has fully started before resuming or processing a persisted timer.
+- Restored placeholder entity states are no longer treated as live, actionable states.
+- An expired action that must execute waits up to 120 seconds for the real target entity to become available.
+- Added `restore_pending` and `restore_target_wait_seconds` diagnostic attributes.
+- Expired ON timers continue to be skipped by default for safety.
+
 ## 0.1.1 — 2026-08-05
 
 Automatic-cancellation reliability update.

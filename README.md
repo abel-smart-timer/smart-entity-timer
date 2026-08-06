@@ -2,12 +2,12 @@
 
 Persistent turn-on/turn-off timers for Home Assistant entities.
 
-**Version:** 0.1.1  
+**Version:** 0.1.2  
 **Minimum Home Assistant version:** 2026.7.0
 
 This repository contains the backend integration. The visual Lovelace card will be developed after functional testing of this release.
 
-## What version 0.1.1 does
+## What version 0.1.2 does
 
 Each configuration entry controls one entity and creates:
 
@@ -32,7 +32,7 @@ The timer runs inside Home Assistant, so the dashboard or mobile application doe
 - By default, an expired OFF timer is executed after startup, while an expired ON timer is skipped for safety.
 - Notifications can target one or more Home Assistant notify entities, devices, or areas containing notify entities.
 
-## Supported entity domains in 0.1.1
+## Supported entity domains in 0.1.2
 
 - `switch`
 - `light`
@@ -57,8 +57,8 @@ Covers, locks, sirens, alarms, valves, and other domains are intentionally exclu
    ```
 
 4. Restart Home Assistant.
-5. Open **Settings → Devices & services → Add integration**.
-6. Search for **Smart Entity Timer**.
+5. Open **Settings → Devices & services → Helpers**.
+6. Select **Create helper** and choose **Smart Entity Timer**.
 7. Create one timer for each entity that needs this function.
 
 The integration does not require YAML helpers.
@@ -93,7 +93,7 @@ attributes:
   finishes_at: "2026-08-05T05:30:00+00:00"
   can_start: false
   can_cancel: true
-  backend_version: "0.1.1"
+  backend_version: "0.1.2"
   card_api_version: 1
 ```
 
@@ -157,7 +157,7 @@ The runtime stores absolute UTC start and finish timestamps.
 
 ## Development status
 
-Version 0.1.1 is the current backend test release. It adds a one-second in-memory watchdog while a timer is active, so early target-state changes are detected even if an integration does not deliver the expected state-change callback. It still requires the complete functional Home Assistant test plan before the card is developed.
+Version 0.1.2 is the current backend test release. It retains the one-second in-memory watchdog and fixes startup restoration: persisted timers are resumed only after Home Assistant has fully started, placeholder restored states are ignored, and expired actions wait for the real target entity before execution. It still requires the complete functional Home Assistant test plan before the card is developed.
 
 See:
 
@@ -173,7 +173,7 @@ Official source repository:
 https://github.com/abel-smart-timer/smart-entity-timer
 ```
 
-This package is already prepared for the `abel-smart-timer` GitHub organization. The `codeowners` list is intentionally empty in version 0.1.1 until a personal GitHub username or organization team is selected as the maintainer.
+This package is already prepared for the `abel-smart-timer` GitHub organization. The `codeowners` list is intentionally empty in version 0.1.2 until a personal GitHub username or organization team is selected as the maintainer.
 
 ## License
 
