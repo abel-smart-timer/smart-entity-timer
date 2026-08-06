@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from homeassistant.const import ATTR_RESTORED
 from homeassistant.core import State
 
 from .const import (
@@ -16,7 +17,11 @@ from .const import (
 
 def is_state_usable(state: State | None) -> bool:
     """Return whether a Home Assistant state can be evaluated."""
-    return state is not None and state.state not in UNAVAILABLE_STATES
+    return (
+        state is not None
+        and state.state not in UNAVAILABLE_STATES
+        and not bool(state.attributes.get(ATTR_RESTORED))
+    )
 
 
 def is_entity_on(entity_id: str, state: State | None) -> bool | None:

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable
+from contextlib import suppress
 from datetime import UTC, datetime, timedelta
 import logging
 from typing import Any
@@ -17,6 +18,7 @@ from homeassistant.helpers.event import (
     async_track_state_change_event,
     async_track_time_interval,
 )
+from homeassistant.helpers.start import async_at_started
 from homeassistant.helpers.storage import Store
 
 from .const import (
@@ -49,6 +51,7 @@ from .const import (
     REASON_MANUAL_CANCEL,
     REASON_TARGET_REACHED,
     REASON_TARGET_UNAVAILABLE,
+    REASON_RESTORE_TARGET_UNAVAILABLE,
     RESULT_AUTO_CANCELLED,
     RESULT_CANCELLED,
     RESULT_COMPLETED,
@@ -62,6 +65,7 @@ from .const import (
     STORAGE_VERSION,
     VERSION,
     WATCHDOG_INTERVAL_SECONDS,
+    RESTORE_TARGET_WAIT_SECONDS,
 )
 from .logic import format_duration, is_state_usable, target_state_reached
 
@@ -86,7 +90,11 @@ class SmartEntityTimerRuntime:
         self._finish_unsub: Callable[[], None] | None = None
         self._target_unsub: Callable[[], None] | None = None
         self._watchdog_unsub: Callable[[], None] | None = None
+        self._startup_unsub: Callable[[], None] | None = None
+        self._restore_task: asyncio.Task[None] | None = None
+        self._target_available_event = asyncio.Event()
         self._target_check_pending = False
+        self._restore_pending = False
 
         self.status = STATUS_IDLE
         self.selected_action = self.default_action
@@ -185,7 +193,7 @@ class SmartEntityTimerRuntime:
         return self.status == STATUS_ACTIVE
 
     async def async_initialize(self) -> None:
-        """Load persisted state, subscribe to the target, and restore a timer."""
+        """Load persisted state and defer restoration until startup is complete."""
         stored = await self._store.async_load() or {}
         self._restore_fields(stored)
 
@@ -194,13 +202,15 @@ class SmartEntityTimerRuntime:
             [self.target_entity_id],
             self._handle_target_state_event,
         )
+        if is_state_usable(self.hass.states.get(self.target_entity_id)):
+            self._target_available_event.set()
 
-        pending_notification: tuple[str, str] | None = None
-        execute_expired = False
+        needs_startup_restore = False
 
         async with self._lock:
             if self.status not in (STATUS_ACTIVE, STATUS_EXECUTING):
                 self.status = STATUS_IDLE if self.status != STATUS_ERROR else STATUS_ERROR
+                self._restore_pending = False
                 await self._async_save_locked()
             elif self.finishes_at is None:
                 self._set_idle_locked(
@@ -213,73 +223,37 @@ class SmartEntityTimerRuntime:
                     as_error=True,
                 )
                 await self._async_save_locked()
-            elif target_state_reached(
-                self.target_entity_id,
-                self.hass.states.get(self.target_entity_id),
-                self.selected_action,
-            ):
-                self._set_idle_locked(
-                    RESULT_AUTO_CANCELLED,
-                    REASON_ALREADY_TARGET,
-                    self._already_target_message(),
-                )
-                await self._async_save_locked()
-            elif self.finishes_at > datetime.now(UTC):
-                self.status = STATUS_ACTIVE
-                self._schedule_finish_locked(self.finishes_at)
-                self._start_watchdog_locked()
-                await self._async_save_locked()
             else:
-                should_execute = (
-                    self.selected_action == ACTION_TURN_OFF
-                    and bool(
-                        self._effective.get(
-                            CONF_EXECUTE_EXPIRED_TURN_OFF,
-                            DEFAULT_EXECUTE_EXPIRED_TURN_OFF,
-                        )
-                    )
-                ) or (
-                    self.selected_action == ACTION_TURN_ON
-                    and bool(
-                        self._effective.get(
-                            CONF_EXECUTE_EXPIRED_TURN_ON,
-                            DEFAULT_EXECUTE_EXPIRED_TURN_ON,
-                        )
-                    )
-                )
-
-                if should_execute:
-                    self.status = STATUS_ACTIVE
-                    self._start_watchdog_locked()
-                    execute_expired = True
-                else:
-                    message = self._localize(
-                        f"El temporizador de {self._action_label()} venció durante el reinicio y la acción fue omitida por seguridad.",
-                        f"The {self._action_label()} timer expired during restart and the action was skipped for safety.",
-                    )
-                    self._set_idle_locked(
-                        RESULT_SKIPPED,
-                        REASON_EXPIRED_DURING_RESTART,
-                        message,
-                    )
-                    pending_notification = (
-                        self._localize(
-                            "Temporizador omitido",
-                            "Timer skipped",
-                        ),
-                        message,
-                    )
+                # During startup, the target may only have a temporary restored state
+                # or may not have loaded yet. Do not execute or cancel from that state.
+                self.status = STATUS_ACTIVE
+                self._restore_pending = True
+                self._cancel_finish_schedule_locked()
+                self._cancel_watchdog_locked()
+                needs_startup_restore = True
                 await self._async_save_locked()
 
         self._async_notify_listeners()
 
-        if execute_expired:
-            await self.async_finish(restored=True)
-        elif pending_notification:
-            await self._async_send_notification(*pending_notification)
+        if needs_startup_restore:
+            self._startup_unsub = async_at_started(
+                self.hass,
+                self._handle_home_assistant_started,
+            )
 
     async def async_shutdown(self) -> None:
-        """Stop listeners and persist state before unload."""
+        """Stop listeners, pending restoration work, and persist state."""
+        if self._startup_unsub is not None:
+            self._startup_unsub()
+            self._startup_unsub = None
+
+        restore_task = self._restore_task
+        self._restore_task = None
+        if restore_task is not None and restore_task is not asyncio.current_task():
+            restore_task.cancel()
+            with suppress(asyncio.CancelledError):
+                await restore_task
+
         async with self._lock:
             self._cancel_finish_schedule_locked()
             self._cancel_watchdog_locked()
@@ -321,6 +295,9 @@ class SmartEntityTimerRuntime:
             self.selected_action,
         )
 
+        if is_state_usable(new_state):
+            self._target_available_event.set()
+
         # Refresh attributes such as target_entity_state even while the timer is idle.
         self._async_notify_listeners()
 
@@ -349,6 +326,188 @@ class SmartEntityTimerRuntime:
             )
             self._async_notify_listeners()
             self._request_target_state_check()
+
+    @callback
+    def _handle_home_assistant_started(self, _hass: HomeAssistant) -> None:
+        """Resume a persisted timer only after Home Assistant has fully started."""
+        self._startup_unsub = None
+        if self._restore_task is not None and not self._restore_task.done():
+            return
+        self._restore_task = self.hass.async_create_task(
+            self._async_restore_after_startup()
+        )
+
+    async def _async_restore_after_startup(self) -> None:
+        """Restore scheduling or process an expired timer after startup."""
+        notification: tuple[str, str] | None = None
+        execute_expired = False
+        current_task = asyncio.current_task()
+
+        try:
+            async with self._lock:
+                if self.status != STATUS_ACTIVE or not self._restore_pending:
+                    return
+
+                finishes_at = self.finishes_at
+                state = self.hass.states.get(self.target_entity_id)
+                if finishes_at is None:
+                    self._set_idle_locked(
+                        RESULT_ERROR,
+                        REASON_ACTION_FAILED,
+                        self._localize(
+                            "No se pudo restaurar el temporizador porque no tenía una fecha final.",
+                            "The timer could not be restored because it had no finish time.",
+                        ),
+                        as_error=True,
+                    )
+                    await self._async_save_locked()
+                elif is_state_usable(state) and target_state_reached(
+                    self.target_entity_id,
+                    state,
+                    self.selected_action,
+                ):
+                    self._set_idle_locked(
+                        RESULT_AUTO_CANCELLED,
+                        REASON_ALREADY_TARGET,
+                        self._already_target_message(),
+                    )
+                    await self._async_save_locked()
+                elif finishes_at > datetime.now(UTC):
+                    # Home Assistant is now running; resume the original absolute deadline.
+                    self._restore_pending = False
+                    self._schedule_finish_locked(finishes_at)
+                    self._start_watchdog_locked()
+                    await self._async_save_locked()
+                else:
+                    should_execute = (
+                        self.selected_action == ACTION_TURN_OFF
+                        and bool(
+                            self._effective.get(
+                                CONF_EXECUTE_EXPIRED_TURN_OFF,
+                                DEFAULT_EXECUTE_EXPIRED_TURN_OFF,
+                            )
+                        )
+                    ) or (
+                        self.selected_action == ACTION_TURN_ON
+                        and bool(
+                            self._effective.get(
+                                CONF_EXECUTE_EXPIRED_TURN_ON,
+                                DEFAULT_EXECUTE_EXPIRED_TURN_ON,
+                            )
+                        )
+                    )
+
+                    if should_execute:
+                        execute_expired = True
+                    else:
+                        message = self._localize(
+                            f"El temporizador de {self._action_label()} venció durante el reinicio y la acción fue omitida por seguridad.",
+                            f"The {self._action_label()} timer expired during restart and the action was skipped for safety.",
+                        )
+                        self._set_idle_locked(
+                            RESULT_SKIPPED,
+                            REASON_EXPIRED_DURING_RESTART,
+                            message,
+                        )
+                        await self._async_save_locked()
+                        notification = (
+                            self._localize("Temporizador omitido", "Timer skipped"),
+                            message,
+                        )
+
+            self._async_notify_listeners()
+
+            if not execute_expired:
+                if notification:
+                    await self._async_send_notification(*notification)
+                return
+
+            state = await self._async_wait_for_real_target_state(
+                RESTORE_TARGET_WAIT_SECONDS
+            )
+
+            async with self._lock:
+                if self.status != STATUS_ACTIVE or not self._restore_pending:
+                    return
+
+                # Re-read under the lock after waiting; the event may be stale.
+                state = self.hass.states.get(self.target_entity_id)
+                if not is_state_usable(state):
+                    message = self._localize(
+                        f"El temporizador venció durante el reinicio, pero {self._target_name()} no estuvo disponible después de esperar {RESTORE_TARGET_WAIT_SECONDS} segundos.",
+                        f"The timer expired during restart, but {self._target_name()} was not available after waiting {RESTORE_TARGET_WAIT_SECONDS} seconds.",
+                    )
+                    self._set_idle_locked(
+                        RESULT_ERROR,
+                        REASON_RESTORE_TARGET_UNAVAILABLE,
+                        message,
+                        as_error=True,
+                    )
+                    await self._async_save_locked()
+                    notification = (
+                        self._localize("Error en el temporizador", "Timer error"),
+                        message,
+                    )
+                    execute_expired = False
+                elif target_state_reached(
+                    self.target_entity_id,
+                    state,
+                    self.selected_action,
+                ):
+                    message = self._already_target_message()
+                    self._set_idle_locked(
+                        RESULT_AUTO_CANCELLED,
+                        REASON_ALREADY_TARGET,
+                        message,
+                    )
+                    await self._async_save_locked()
+                    execute_expired = False
+                    notification = None
+                else:
+                    self._restore_pending = False
+                    self._start_watchdog_locked()
+                    await self._async_save_locked()
+
+            self._async_notify_listeners()
+
+            if execute_expired:
+                await self.async_finish(restored=True)
+            elif notification:
+                await self._async_send_notification(*notification)
+        finally:
+            if self._restore_task is current_task:
+                self._restore_task = None
+
+    async def _async_wait_for_real_target_state(
+        self,
+        timeout_seconds: int,
+    ) -> State | None:
+        """Wait for a usable, non-restored target state after startup."""
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + timeout_seconds
+
+        while True:
+            state = self.hass.states.get(self.target_entity_id)
+            if is_state_usable(state):
+                return state
+
+            remaining = deadline - loop.time()
+            if remaining <= 0:
+                return None
+
+            self._target_available_event.clear()
+            # Close the race between the previous read and clearing the event.
+            state = self.hass.states.get(self.target_entity_id)
+            if is_state_usable(state):
+                return state
+
+            try:
+                await asyncio.wait_for(
+                    self._target_available_event.wait(),
+                    timeout=remaining,
+                )
+            except TimeoutError:
+                return None
 
     @callback
     def _request_target_state_check(self) -> None:
@@ -459,6 +618,7 @@ class SmartEntityTimerRuntime:
             self.started_at = now
             self.finishes_at = now + timedelta(minutes=duration)
             self.status = STATUS_ACTIVE
+            self._restore_pending = False
             self.last_result = None
             self.last_reason = None
             self.last_message = None
@@ -559,6 +719,7 @@ class SmartEntityTimerRuntime:
             if self.status != STATUS_ACTIVE:
                 return
 
+            self._restore_pending = False
             self._cancel_finish_schedule_locked()
             self._cancel_watchdog_locked()
             state = self.hass.states.get(self.target_entity_id)
@@ -832,6 +993,7 @@ class SmartEntityTimerRuntime:
         self._cancel_finish_schedule_locked()
         self._cancel_watchdog_locked()
         self.status = STATUS_ERROR if as_error else STATUS_IDLE
+        self._restore_pending = False
         self.started_at = None
         self.finishes_at = None
         self.last_result = result
@@ -866,6 +1028,8 @@ class SmartEntityTimerRuntime:
             "backend_version": VERSION,
             "card_api_version": CARD_API_VERSION,
             "watchdog_active": self._watchdog_unsub is not None,
+            "restore_pending": self._restore_pending,
+            "restore_target_wait_seconds": RESTORE_TARGET_WAIT_SECONDS,
         }
 
     def diagnostics(self) -> dict[str, Any]:
@@ -888,6 +1052,8 @@ class SmartEntityTimerRuntime:
             "backend_version": VERSION,
             "card_api_version": CARD_API_VERSION,
             "watchdog_active": self._watchdog_unsub is not None,
+            "restore_pending": self._restore_pending,
+            "restore_target_wait_seconds": RESTORE_TARGET_WAIT_SECONDS,
         }
 
     def _already_target_message(self, action: str | None = None) -> str:
