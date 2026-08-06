@@ -1,4 +1,4 @@
-# Functional test plan — Smart Entity Timer 0.1.0
+# Functional test plan — Smart Entity Timer 0.1.2
 
 Run these tests on a Home Assistant test instance before using the integration on a customer installation.
 
@@ -28,7 +28,7 @@ Record for every test:
 
 1. Copy `custom_components/smart_entity_timer` into `/config/custom_components`.
 2. Restart Home Assistant.
-3. Add **Smart Entity Timer** from Devices & services.
+3. Open **Settings → Devices & services → Helpers**, select **Create helper**, and choose **Smart Entity Timer**.
 4. Select a supported entity.
 
 Expected:
@@ -267,7 +267,7 @@ Expected: no duplicate listeners, duplicate actions, or repeated notifications.
 
 ## Acceptance gate for card development
 
-Proceed to card version 0.1.0 only after:
+Proceed to the first card test version only after:
 
 - T01–T16 pass on `input_boolean` or `switch`;
 - T07–T22 pass on at least one real `climate` entity;

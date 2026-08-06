@@ -71,7 +71,7 @@ No subas el archivo ZIP como un solo archivo. Debes subir el contenido descompri
 7. En **Commit message**, escribe:
 
    ```text
-   Add Smart Entity Timer 0.1.0
+   Add Smart Entity Timer 0.1.2
    ```
 
 8. Selecciona **Commit directly to the main branch**.
@@ -136,9 +136,9 @@ smart-home
 
 Activa **Issues** en **Settings → General → Features** si no aparece habilitado.
 
-## 7. No crear todavía el Release 0.1.0
+## 7. No crear todavía el Release 0.1.2
 
-Primero deben completarse las pruebas funcionales en Home Assistant. El lanzamiento público `v0.1.0` se creará después de corregir cualquier falla encontrada durante esas pruebas.
+Primero deben completarse las pruebas funcionales en Home Assistant. El lanzamiento público `v0.1.2` se creará después de corregir cualquier falla encontrada durante esas pruebas.
 
 ## Nota sobre codeowners
 
