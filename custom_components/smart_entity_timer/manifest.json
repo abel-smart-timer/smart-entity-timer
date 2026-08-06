@@ -1,0 +1,12 @@
+{
+  "domain": "smart_entity_timer",
+  "name": "Smart Entity Timer",
+  "version": "0.1.0",
+  "config_flow": true,
+  "documentation": "https://github.com/abel-smart-timer/smart-entity-timer",
+  "issue_tracker": "https://github.com/abel-smart-timer/smart-entity-timer/issues",
+  "codeowners": [],
+  "integration_type": "helper",
+  "iot_class": "calculated",
+  "requirements": []
+}

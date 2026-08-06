@@ -1,0 +1,112 @@
+{
+  "title": "Temporizador inteligente de entidad",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Crear temporizador de entidad",
+        "description": "Selecciona una entidad. El temporizador puede encenderla o apagarla y se cancela automáticamente si la entidad alcanza antes el estado solicitado.",
+        "data": {
+          "name": "Nombre del temporizador",
+          "target_entity": "Entidad objetivo",
+          "default_action": "Acción final predeterminada",
+          "default_duration_minutes": "Duración predeterminada",
+          "notification_target": "Entidades o dispositivos de notificación"
+        },
+        "data_description": {
+          "notification_target": "Opcional. Selecciona una o varias entidades notify, dispositivos o áreas que contengan entidades notify."
+        }
+      }
+    },
+    "error": {
+      "name_required": "Introduce un nombre.",
+      "unsupported_domain": "Este dominio de entidad no es compatible con la versión 0.1.0.",
+      "entity_not_found": "La entidad no existe actualmente en Home Assistant.",
+      "already_configured": "Esta entidad ya está controlada por otro Smart Entity Timer."
+    },
+    "abort": {
+      "already_configured": "Esta entidad ya está configurada."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opciones del temporizador",
+        "description": "Debes cancelar o esperar a que termine el temporizador activo antes de cambiar estas opciones.",
+        "data": {
+          "target_entity": "Entidad objetivo",
+          "default_action": "Acción final predeterminada",
+          "default_duration_minutes": "Duración predeterminada",
+          "max_duration_minutes": "Duración máxima",
+          "notification_target": "Entidades o dispositivos de notificación",
+          "notify_manual_cancel": "Notificar cancelaciones manuales",
+          "notify_auto_cancel": "Notificar cancelaciones automáticas",
+          "execute_expired_turn_off": "Ejecutar apagado vencido después de reiniciar",
+          "execute_expired_turn_on": "Ejecutar encendido vencido después de reiniciar",
+          "confirmation_timeout": "Tiempo para confirmar el estado"
+        },
+        "data_description": {
+          "execute_expired_turn_off": "Recomendado: activado. Si Home Assistant estaba apagado cuando venció un temporizador OFF, apaga la entidad al iniciar.",
+          "execute_expired_turn_on": "Recomendado: desactivado. Evita encendidos inesperados después de una interrupción prolongada.",
+          "confirmation_timeout": "Tiempo máximo para que la entidad confirme el estado solicitado."
+        }
+      }
+    },
+    "error": {
+      "timer_active": "Cancela o espera a que termine el temporizador activo antes de cambiar las opciones.",
+      "unsupported_domain": "Este dominio de entidad no es compatible con la versión 0.1.0.",
+      "entity_not_found": "La entidad no existe actualmente en Home Assistant.",
+      "already_configured": "Esta entidad ya está controlada por otro Smart Entity Timer.",
+      "duration_above_maximum": "La duración predeterminada no puede superar la duración máxima."
+    }
+  },
+  "selector": {
+    "end_action": {
+      "options": {
+        "turn_on": "Encender",
+        "turn_off": "Apagar"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "status": {
+        "name": "Estado",
+        "state": {
+          "idle": "Inactivo",
+          "active": "Activo",
+          "executing": "Ejecutando",
+          "error": "Error"
+        }
+      }
+    },
+    "select": {
+      "end_action": {
+        "name": "Acción final",
+        "state": {
+          "turn_on": "Encender",
+          "turn_off": "Apagar"
+        }
+      }
+    }
+  },
+  "services": {
+    "start": {
+      "name": "Iniciar temporizador",
+      "description": "Inicia un temporizador configurado.",
+      "fields": {
+        "duration_minutes": {
+          "name": "Duración",
+          "description": "Valor opcional que sustituye la duración para esta ejecución, en minutos enteros."
+        },
+        "end_action": {
+          "name": "Acción final",
+          "description": "Valor opcional que sustituye la acción para esta ejecución."
+        }
+      }
+    },
+    "cancel": {
+      "name": "Cancelar temporizador",
+      "description": "Cancela un temporizador activo sin cambiar la entidad objetivo."
+    }
+  }
+}

@@ -1,0 +1,37 @@
+start:
+  name: Start timer
+  description: Start a Smart Entity Timer with its selected values or optional overrides.
+  target:
+    entity:
+      integration: smart_entity_timer
+      domain: sensor
+  fields:
+    duration_minutes:
+      name: Duration
+      description: Optional duration override in whole minutes.
+      required: false
+      example: 90
+      selector:
+        number:
+          min: 1
+          max: 10080
+          step: 1
+          mode: box
+          unit_of_measurement: min
+    end_action:
+      name: Final action
+      description: Optional action override for this run.
+      required: false
+      example: turn_off
+      selector:
+        select:
+          options:
+            - turn_on
+            - turn_off
+cancel:
+  name: Cancel timer
+  description: Cancel an active Smart Entity Timer without changing the target entity.
+  target:
+    entity:
+      integration: smart_entity_timer
+      domain: sensor

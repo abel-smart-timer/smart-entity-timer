@@ -1,0 +1,66 @@
+"""Status sensor for Smart Entity Timer."""
+
+from __future__ import annotations
+
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+from homeassistant.components.sensor import SensorEntity
+
+from .const import (
+    ACTION_TURN_ON,
+    ATTR_DURATION_MINUTES,
+    ATTR_END_ACTION,
+    STATUS_ACTIVE,
+    STATUS_ERROR,
+    STATUS_EXECUTING,
+)
+from .entity import SmartEntityTimerEntity
+from .runtime import SmartEntityTimerRuntime
+
+
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
+) -> None:
+    runtime: SmartEntityTimerRuntime = entry.runtime_data
+    async_add_entities([SmartEntityTimerStatusSensor(runtime)])
+
+
+class SmartEntityTimerStatusSensor(SmartEntityTimerEntity, SensorEntity):
+    """Main status entity and service target for a configured timer."""
+
+    _attr_translation_key = "status"
+
+    def __init__(self, runtime: SmartEntityTimerRuntime) -> None:
+        super().__init__(runtime, "status", "Estado", "Status")
+
+    @property
+    def native_value(self) -> str:
+        return self.runtime.status
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        return self.runtime.state_attributes()
+
+    @property
+    def icon(self) -> str:
+        if self.runtime.status == STATUS_ACTIVE:
+            return "mdi:timer-sand"
+        if self.runtime.status == STATUS_EXECUTING:
+            return "mdi:timer-cog-outline"
+        if self.runtime.status == STATUS_ERROR:
+            return "mdi:timer-alert-outline"
+        if self.runtime.selected_action == ACTION_TURN_ON:
+            return "mdi:timer-play-outline"
+        return "mdi:timer-off-outline"
+
+    async def async_service_start(self, **service_data) -> None:
+        await self.runtime.async_start(
+            duration_minutes=service_data.get(ATTR_DURATION_MINUTES),
+            end_action=service_data.get(ATTR_END_ACTION),
+        )
+
+    async def async_service_cancel(self) -> None:
+        await self.runtime.async_cancel()
