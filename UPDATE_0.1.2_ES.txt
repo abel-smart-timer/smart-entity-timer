@@ -1,0 +1,20 @@
+SMART ENTITY TIMER 0.1.2 — ACTUALIZACIÓN
+
+CORRECCIÓN PRINCIPAL
+- Los temporizadores de apagado vencidos durante un reinicio ahora esperan a que Home Assistant termine de iniciar.
+- La integración ignora estados temporales restaurados y espera hasta 120 segundos a que la entidad real esté disponible.
+- Los temporizadores de encendido vencidos continúan omitiéndose por seguridad cuando esa opción está desactivada.
+
+ACTUALIZAR HAOS
+1. Haga un respaldo.
+2. Copie custom_components/smart_entity_timer dentro de /config/custom_components/.
+3. Reemplace todos los archivos existentes.
+4. Reinicie Home Assistant.
+5. En Herramientas para desarrolladores > Estados, confirme backend_version: 0.1.2.
+
+ACTUALIZAR GITHUB
+1. Abra el repositorio abel-smart-timer/smart-entity-timer.
+2. Use Add file > Upload files.
+3. Suba la carpeta custom_components y los archivos README.md y CHANGELOG.md.
+4. Mensaje sugerido: Fix restart restoration in 0.1.2
+5. Confirme que Hassfest y HACS validation terminen en verde.
