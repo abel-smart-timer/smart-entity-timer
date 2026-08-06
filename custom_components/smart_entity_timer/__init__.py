@@ -6,7 +6,8 @@ import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import service
+from homeassistant.helpers import config_validation as cv, service
+from homeassistant.helpers.typing import ConfigType
 
 from .const import (
     ACTIONS,
@@ -19,8 +20,10 @@ from .const import (
 )
 from .runtime import SmartEntityTimerRuntime
 
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
-async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Register integration-wide entity services."""
     hass.data.setdefault(DOMAIN, {})
 
