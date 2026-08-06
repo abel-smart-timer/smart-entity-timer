@@ -10,11 +10,12 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID
-from homeassistant.core import Event, HomeAssistant, State, callback
+from homeassistant.core import Event, EventStateChangedData, HomeAssistant, State, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.event import (
     async_track_point_in_utc_time,
     async_track_state_change_event,
+    async_track_time_interval,
 )
 from homeassistant.helpers.storage import Store
 
@@ -60,6 +61,7 @@ from .const import (
     STORAGE_KEY,
     STORAGE_VERSION,
     VERSION,
+    WATCHDOG_INTERVAL_SECONDS,
 )
 from .logic import format_duration, is_state_usable, target_state_reached
 
@@ -83,6 +85,8 @@ class SmartEntityTimerRuntime:
         self._listeners: set[UpdateCallback] = set()
         self._finish_unsub: Callable[[], None] | None = None
         self._target_unsub: Callable[[], None] | None = None
+        self._watchdog_unsub: Callable[[], None] | None = None
+        self._target_check_pending = False
 
         self.status = STATUS_IDLE
         self.selected_action = self.default_action
@@ -223,6 +227,7 @@ class SmartEntityTimerRuntime:
             elif self.finishes_at > datetime.now(UTC):
                 self.status = STATUS_ACTIVE
                 self._schedule_finish_locked(self.finishes_at)
+                self._start_watchdog_locked()
                 await self._async_save_locked()
             else:
                 should_execute = (
@@ -245,6 +250,7 @@ class SmartEntityTimerRuntime:
 
                 if should_execute:
                     self.status = STATUS_ACTIVE
+                    self._start_watchdog_locked()
                     execute_expired = True
                 else:
                     message = self._localize(
@@ -276,6 +282,7 @@ class SmartEntityTimerRuntime:
         """Stop listeners and persist state before unload."""
         async with self._lock:
             self._cancel_finish_schedule_locked()
+            self._cancel_watchdog_locked()
             await self._async_save_locked()
         if self._target_unsub is not None:
             self._target_unsub()
@@ -299,49 +306,100 @@ class SmartEntityTimerRuntime:
             listener()
 
     @callback
-    def _handle_target_state_event(self, event: Event) -> None:
-        """Respond to target changes without blocking the event bus."""
+    def _handle_target_state_event(
+        self,
+        event: Event[EventStateChangedData],
+    ) -> None:
+        """React immediately when the configured target changes state."""
+        new_state = event.data["new_state"]
+        _LOGGER.debug(
+            "Target state event for %s: %s -> %s while timer status=%s action=%s",
+            self.target_entity_id,
+            event.data["old_state"].state if event.data["old_state"] else None,
+            new_state.state if new_state else None,
+            self.status,
+            self.selected_action,
+        )
+
+        # Refresh attributes such as target_entity_state even while the timer is idle.
         self._async_notify_listeners()
+
         if self.status != STATUS_ACTIVE:
             return
-        self.hass.async_create_task(self._async_process_target_state_change(event))
-
-    async def _async_process_target_state_change(self, event: Event) -> None:
-        new_state: State | None = event.data.get("new_state")
-        if not target_state_reached(
+        if target_state_reached(
             self.target_entity_id,
             new_state,
             self.selected_action,
         ):
-            return
+            self._request_target_state_check()
 
+    @callback
+    def _handle_watchdog_interval(self, _now: datetime) -> None:
+        """Catch a target state that was not observed through the event listener."""
+        if self.status != STATUS_ACTIVE:
+            return
+        if target_state_reached(
+            self.target_entity_id,
+            self.hass.states.get(self.target_entity_id),
+            self.selected_action,
+        ):
+            _LOGGER.debug(
+                "Target-state watchdog detected completion for %s",
+                self.target_entity_id,
+            )
+            self._async_notify_listeners()
+            self._request_target_state_check()
+
+    @callback
+    def _request_target_state_check(self) -> None:
+        """Schedule exactly one race-safe automatic-cancellation check."""
+        if self._target_check_pending:
+            return
+        self._target_check_pending = True
+        self.hass.async_create_task(self._async_process_target_state_change())
+
+    async def _async_process_target_state_change(self) -> None:
+        """Cancel an active timer when its requested final state is reached early."""
         notify = False
         title = ""
         message = ""
-        async with self._lock:
-            if self.status != STATUS_ACTIVE:
-                return
-            self._cancel_finish_schedule_locked()
-            message = self._localize(
-                f"{self._target_name()} alcanzó antes el estado objetivo. El temporizador se canceló automáticamente.",
-                f"{self._target_name()} reached the target state early. The timer was cancelled automatically.",
-            )
-            self._set_idle_locked(
-                RESULT_AUTO_CANCELLED,
-                REASON_TARGET_REACHED,
-                message,
-            )
-            await self._async_save_locked()
-            notify = bool(
-                self._effective.get(
-                    CONF_NOTIFY_AUTO_CANCEL,
-                    DEFAULT_NOTIFY_AUTO_CANCEL,
+
+        try:
+            async with self._lock:
+                if self.status != STATUS_ACTIVE:
+                    return
+
+                # Re-read under the lock. The event that scheduled this task may be stale.
+                state = self.hass.states.get(self.target_entity_id)
+                if not target_state_reached(
+                    self.target_entity_id,
+                    state,
+                    self.selected_action,
+                ):
+                    return
+
+                message = self._localize(
+                    f"{self._target_name()} alcanzó antes el estado objetivo. El temporizador se canceló automáticamente.",
+                    f"{self._target_name()} reached the target state early. The timer was cancelled automatically.",
                 )
-            )
-            title = self._localize(
-                "Temporizador cancelado",
-                "Timer cancelled",
-            )
+                self._set_idle_locked(
+                    RESULT_AUTO_CANCELLED,
+                    REASON_TARGET_REACHED,
+                    message,
+                )
+                await self._async_save_locked()
+                notify = bool(
+                    self._effective.get(
+                        CONF_NOTIFY_AUTO_CANCEL,
+                        DEFAULT_NOTIFY_AUTO_CANCEL,
+                    )
+                )
+                title = self._localize(
+                    "Temporizador cancelado",
+                    "Timer cancelled",
+                )
+        finally:
+            self._target_check_pending = False
 
         self._async_notify_listeners()
         if notify:
@@ -405,6 +463,7 @@ class SmartEntityTimerRuntime:
             self.last_reason = None
             self.last_message = None
             self._schedule_finish_locked(self.finishes_at)
+            self._start_watchdog_locked()
             await self._async_save_locked()
 
         self._async_notify_listeners()
@@ -501,6 +560,7 @@ class SmartEntityTimerRuntime:
                 return
 
             self._cancel_finish_schedule_locked()
+            self._cancel_watchdog_locked()
             state = self.hass.states.get(self.target_entity_id)
 
             if target_state_reached(
@@ -688,6 +748,22 @@ class SmartEntityTimerRuntime:
             self._finish_unsub()
             self._finish_unsub = None
 
+    @callback
+    def _start_watchdog_locked(self) -> None:
+        """Start a lightweight one-second state watchdog only while active."""
+        self._cancel_watchdog_locked()
+        self._watchdog_unsub = async_track_time_interval(
+            self.hass,
+            self._handle_watchdog_interval,
+            timedelta(seconds=WATCHDOG_INTERVAL_SECONDS),
+        )
+
+    @callback
+    def _cancel_watchdog_locked(self) -> None:
+        if self._watchdog_unsub is not None:
+            self._watchdog_unsub()
+            self._watchdog_unsub = None
+
     async def _async_send_notification(self, title: str, message: str) -> None:
         target = self.notification_target
         if not target:
@@ -753,6 +829,8 @@ class SmartEntityTimerRuntime:
         *,
         as_error: bool = False,
     ) -> None:
+        self._cancel_finish_schedule_locked()
+        self._cancel_watchdog_locked()
         self.status = STATUS_ERROR if as_error else STATUS_IDLE
         self.started_at = None
         self.finishes_at = None
@@ -768,6 +846,11 @@ class SmartEntityTimerRuntime:
             "target_entity": self.target_entity_id,
             "target_entity_name": self._target_name(),
             "target_entity_state": state.state if state else None,
+            "target_state_reached": target_state_reached(
+                self.target_entity_id,
+                state,
+                self.selected_action,
+            ),
             "end_action": self.selected_action,
             "duration_minutes": self.selected_duration_minutes,
             "duration_seconds": self.selected_duration_minutes * 60,
@@ -782,6 +865,7 @@ class SmartEntityTimerRuntime:
             "last_finished_at": self._iso(self.last_finished_at),
             "backend_version": VERSION,
             "card_api_version": CARD_API_VERSION,
+            "watchdog_active": self._watchdog_unsub is not None,
         }
 
     def diagnostics(self) -> dict[str, Any]:
@@ -803,6 +887,7 @@ class SmartEntityTimerRuntime:
             "last_message": self.last_message,
             "backend_version": VERSION,
             "card_api_version": CARD_API_VERSION,
+            "watchdog_active": self._watchdog_unsub is not None,
         }
 
     def _already_target_message(self, action: str | None = None) -> str:

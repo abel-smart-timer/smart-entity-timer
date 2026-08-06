@@ -34,7 +34,7 @@ class SmartEntityTimerStatusSensor(SmartEntityTimerEntity, SensorEntity):
     _attr_translation_key = "status"
 
     def __init__(self, runtime: SmartEntityTimerRuntime) -> None:
-        super().__init__(runtime, "status", "Estado", "Status")
+        super().__init__(runtime, "status", "Estado del temporizador", "Timer status")
 
     @property
     def native_value(self) -> str:

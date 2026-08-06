@@ -6,7 +6,7 @@ from homeassistant.const import Platform
 
 DOMAIN = "smart_entity_timer"
 NAME = "Smart Entity Timer"
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 MIN_HA_VERSION = "2026.7.0"
 CARD_API_VERSION = 1
 
@@ -32,6 +32,7 @@ DEFAULT_ACTION = "turn_off"
 DEFAULT_DURATION_MINUTES = 60
 DEFAULT_MAX_DURATION_MINUTES = 24 * 60
 DEFAULT_CONFIRMATION_TIMEOUT = 10
+WATCHDOG_INTERVAL_SECONDS = 1
 DEFAULT_NOTIFY_MANUAL_CANCEL = False
 DEFAULT_NOTIFY_AUTO_CANCEL = False
 DEFAULT_EXECUTE_EXPIRED_TURN_OFF = True
@@ -68,7 +69,7 @@ ATTR_END_ACTION = "end_action"
 STORAGE_VERSION = 1
 STORAGE_KEY = f"{DOMAIN}.{{entry_id}}"
 
-# Domains with reliable Home Assistant turn_on/turn_off semantics for v0.1.0.
+# Domains with reliable Home Assistant turn_on/turn_off semantics for v0.1.1.
 SUPPORTED_DOMAINS: tuple[str, ...] = (
     "climate",
     "fan",
