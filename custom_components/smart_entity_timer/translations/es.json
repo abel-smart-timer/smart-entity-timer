@@ -19,7 +19,7 @@
     },
     "error": {
       "name_required": "Introduce un nombre.",
-      "unsupported_domain": "Este dominio de entidad no es compatible con la versión 0.1.0.",
+      "unsupported_domain": "Este dominio de entidad no es compatible con la versión 0.1.1.",
       "entity_not_found": "La entidad no existe actualmente en Home Assistant.",
       "already_configured": "Esta entidad ya está controlada por otro Smart Entity Timer."
     },
@@ -53,7 +53,7 @@
     },
     "error": {
       "timer_active": "Cancela o espera a que termine el temporizador activo antes de cambiar las opciones.",
-      "unsupported_domain": "Este dominio de entidad no es compatible con la versión 0.1.0.",
+      "unsupported_domain": "Este dominio de entidad no es compatible con la versión 0.1.1.",
       "entity_not_found": "La entidad no existe actualmente en Home Assistant.",
       "already_configured": "Esta entidad ya está controlada por otro Smart Entity Timer.",
       "duration_above_maximum": "La duración predeterminada no puede superar la duración máxima."
@@ -70,7 +70,7 @@
   "entity": {
     "sensor": {
       "status": {
-        "name": "Estado",
+        "name": "Estado del temporizador",
         "state": {
           "idle": "Inactivo",
           "active": "Activo",
