@@ -1,145 +1,83 @@
-# Publicación en GitHub desde el navegador
+# Mantenimiento del repositorio desde el navegador
 
-Este paquete está preparado para la organización:
-
-```text
-https://github.com/abel-smart-timer
-```
-
-El repositorio de la integración debe llamarse exactamente:
-
-```text
-smart-entity-timer
-```
-
-La dirección final será:
+Repositorio:
 
 ```text
 https://github.com/abel-smart-timer/smart-entity-timer
 ```
 
-## 1. Crear el repositorio
-
-1. Inicia sesión en GitHub.
-2. Abre la organización `abel-smart-timer`.
-3. En la pestaña **Repositories**, selecciona **New repository**.
-4. En **Owner**, confirma que aparezca `abel-smart-timer`.
-5. En **Repository name**, escribe `smart-entity-timer`.
-6. En **Description**, escribe:
-
-   ```text
-   Persistent turn-on and turn-off timers for Home Assistant entities
-   ```
-
-7. Selecciona **Public**.
-8. No actives **Add a README file**.
-9. No agregues `.gitignore`.
-10. No elijas una licencia, porque el paquete ya contiene `LICENSE`.
-11. Selecciona **Create repository**.
-
-## 2. Descomprimir este ZIP
-
-1. En Windows, haz clic derecho en el ZIP.
-2. Selecciona **Extraer todo**.
-3. Abre la carpeta extraída.
-4. Confirma que dentro se vean directamente estas carpetas y archivos:
-
-   ```text
-   .github/
-   custom_components/
-   docs/
-   images/
-   .gitignore
-   CHANGELOG.md
-   hacs.json
-   INSTALL.txt
-   LICENSE
-   README.md
-   UPLOAD_TO_GITHUB_ES.txt
-   ```
-
-No subas el archivo ZIP como un solo archivo. Debes subir el contenido descomprimido.
-
-## 3. Subir los archivos
-
-1. Abre el repositorio vacío `abel-smart-timer/smart-entity-timer`.
-2. Selecciona **uploading an existing file**. Si no aparece, usa **Add file → Upload files**.
-3. En el Explorador de Windows, entra en la carpeta extraída.
-4. Selecciona todo su contenido.
-5. Arrastra las carpetas y archivos a la ventana de GitHub.
-6. Espera a que todos los archivos terminen de cargarse.
-7. En **Commit message**, escribe:
-
-   ```text
-   Add Smart Entity Timer 0.1.3
-   ```
-
-8. Selecciona **Commit directly to the main branch**.
-9. Presiona **Commit changes**.
-
-## 4. Verificar la estructura
-
-En la página principal del repositorio deben verse, como mínimo:
+Versión estable actual:
 
 ```text
-.github
-custom_components
-docs
-images
-CHANGELOG.md
-hacs.json
-INSTALL.txt
-LICENSE
-README.md
+v0.1.3
 ```
 
-Entra a esta ruta y confirma que existe `manifest.json`:
+La integración ya tiene Release publicado y validaciones de GitHub Actions/HACS funcionando. Este documento reemplaza las instrucciones iniciales de creación del repositorio.
+
+## Actualizar archivos desde el navegador
+
+1. Abre `abel-smart-timer/smart-entity-timer`.
+2. Selecciona **Add file → Upload files**.
+3. Arrastra únicamente los archivos/carpetas que deseas reemplazar o agregar.
+4. Revisa la lista de cambios antes del commit.
+5. Escribe un mensaje de commit descriptivo.
+6. Guarda directamente en `main` cuando se trate de una actualización pequeña y revisada.
+7. Abre **Actions** y confirma que las validaciones terminen en verde.
+
+## Actualizaciones solo de documentación
+
+Una corrección de README, INSTALL o archivos bajo `docs/` no requiere cambiar la versión del `manifest.json` si no cambia el código distribuido de la integración.
+
+El Release `v0.1.3` continúa representando exactamente el código que fue probado y publicado. Los cambios documentales posteriores permanecen en `main` hasta el siguiente Release.
+
+## Flujo para una nueva versión de código
+
+1. Actualiza el código y la versión del manifiesto.
+2. Actualiza `CHANGELOG.md` y documentación relevante.
+3. Sube los cambios a `main`.
+4. Espera a que GitHub Actions termine en verde.
+5. Prueba la versión en Home Assistant real.
+6. Crea un nuevo Release con un tag nuevo, por ejemplo `v0.1.4` o `v0.2.0`.
+7. No reutilices un tag existente para código diferente.
+
+## HACS
+
+Smart Entity Timer se distribuye como integración HACS.
+
+La estructura principal debe conservarse:
 
 ```text
-custom_components/smart_entity_timer/manifest.json
+custom_components/
+└── smart_entity_timer/
+    ├── manifest.json
+    ├── __init__.py
+    └── ...
 ```
 
-El archivo debe apuntar a:
+Después de cualquier cambio relevante revisa en GitHub Actions:
+
+- Python checks;
+- Hassfest;
+- HACS validation.
+
+## Repositorio de la tarjeta
+
+La tarjeta se mantiene separada en:
 
 ```text
-https://github.com/abel-smart-timer/smart-entity-timer
+https://github.com/abel-smart-timer/smart-entity-timer-card
 ```
 
-## 5. Revisar GitHub Actions
+Esto es intencional: HACS administra la integración y el plugin Dashboard como tipos de repositorio distintos.
 
-1. Abre la pestaña **Actions** del repositorio.
-2. Si GitHub pregunta si deseas habilitar workflows, selecciónalo.
-3. Abre la ejecución llamada **Validate**.
-4. Revisa los trabajos **Hassfest** y **HACS validation**.
-5. En esta primera etapa, guarda el texto completo de cualquier error para corregirlo antes de crear el lanzamiento.
-
-## 6. Configurar la información del repositorio
-
-En la página principal, en el panel **About**, selecciona el icono de engrane y agrega:
-
-Descripción:
+## Versiones compatibles actuales
 
 ```text
-Persistent turn-on and turn-off timers for Home Assistant entities
+Smart Entity Timer       0.1.3
+Smart Entity Timer Card  0.2.2
+Card API                  2
 ```
 
-Topics:
+## Próximas funciones
 
-```text
-home-assistant
-homeassistant
-hacs
-custom-integration
-timer
-smart-home
-```
-
-Activa **Issues** en **Settings → General → Features** si no aparece habilitado.
-
-## 7. No crear todavía el Release 0.1.3
-
-Primero deben completarse las pruebas funcionales en Home Assistant. El lanzamiento público `v0.1.3` se creará después de corregir cualquier falla encontrada durante esas pruebas.
-
-## Nota sobre codeowners
-
-El repositorio pertenece a la organización `abel-smart-timer`, pero el campo `codeowners` del manifiesto debe señalar una cuenta personal de GitHub o un equipo concreto de la organización. En este paquete queda vacío hasta definir ese responsable. Esto no impide probar la integración ni alojar el código.
+Las ideas que todavía no forman parte de la versión estable deben documentarse en `docs/ROADMAP.md` y no presentarse en README como funciones existentes.
