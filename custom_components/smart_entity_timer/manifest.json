@@ -4,9 +4,10 @@
   "codeowners": [],
   "config_flow": true,
   "documentation": "https://github.com/abel-smart-timer/smart-entity-timer",
-  "integration_type": "helper",
+  "integration_type": "hub",
   "iot_class": "calculated",
   "issue_tracker": "https://github.com/abel-smart-timer/smart-entity-timer/issues",
   "requirements": [],
-  "version": "0.2.0"
+  "single_config_entry": true,
+  "version": "0.3.0"
 }

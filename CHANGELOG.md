@@ -1,8 +1,28 @@
 # Changelog
 
+## 0.3.0 — 2026-08-07
+
+Centralized integration-management architecture.
+
+- Changed the manifest from `integration_type: helper` to `integration_type: hub`.
+- Added `single_config_entry: true`.
+- Replaced one-config-entry-per-timer storage with one parent config entry plus one `timer` config subentry per timer.
+- Added a parent runtime manager that owns all timer runtimes.
+- Added Timer config-subentry add and reconfigure flows.
+- New installations open the first Add timer flow immediately after creating the parent integration.
+- Existing 0.1.x/0.2.x entries are automatically consolidated before config-entry setup.
+- Migration preserves existing entity IDs and unique IDs by moving entity-registry ownership to the new parent/subentry without renaming entities.
+- Migration preserves the legacy timer id for persistent storage and Card API companion entity lookup.
+- Entity platforms now register every timer with `config_subentry_id`.
+- Card API remains v2 and Smart Entity Timer Card 0.2.2 compatibility is intentionally preserved.
+- Personalized notifications and lifecycle events from 0.2.0 remain unchanged.
+- Added 0.3.0 topology/migration regression checks and a dedicated manual migration test plan.
+- Validated clean installation, multi-timer migration, entity-ID preservation, centralized reconfiguration, Card 0.2.2 compatibility, notifications, and lifecycle events on real Home Assistant.
+- Documented that all timers must be idle before performing the 0.2.x → 0.3.0 topology upgrade.
+
 ## 0.2.0 — 2026-08-07
 
-Notification customization and lifecycle-events release candidate.
+Notification customization and lifecycle-events release.
 
 - Added optional custom titles and messages for completion, errors, skipped restart actions, manual cancellation, and automatic cancellation.
 - Empty template fields keep the existing localized notification text unchanged.

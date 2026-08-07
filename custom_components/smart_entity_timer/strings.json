@@ -1,88 +1,119 @@
 {
   "title": "Smart Entity Timer",
   "config": {
-    "step": {
-      "user": {
-        "title": "Create an entity timer",
-        "description": "Choose one entity. The timer can turn it on or off and automatically cancels if the entity reaches the requested state early.",
-        "data": {
-          "name": "Timer name",
-          "target_entity": "Target entity",
-          "default_action": "Default final action",
-          "default_duration_minutes": "Default duration",
-          "notification_target": "Notification entities or devices"
+    "abort": {
+      "single_instance_allowed": "Smart Entity Timer is already configured. Add timers from its integration page."
+    },
+    "step": {}
+  },
+  "config_subentries": {
+    "timer": {
+      "entry_type": "Timer",
+      "initiate_flow": {
+        "user": "Add timer"
+      },
+      "step": {
+        "user": {
+          "title": "Add timer",
+          "description": "Create a timer managed inside Smart Entity Timer. Each timer controls one entity and keeps its own state, preferences, and notifications. Available variables for notification titles and messages: {timer_name}, {target_name}, {target_entity}, {action}, {action_id}, {action_past}, {duration}, {duration_minutes}, {result}, {reason}, {finished_at}, {restored}, {default_title}, {default_message}. Leave any custom field blank to keep the built-in text.",
+          "data": {
+            "name": "Timer name",
+            "target_entity": "Target entity",
+            "default_action": "Default final action",
+            "default_duration_minutes": "Default duration",
+            "max_duration_minutes": "Maximum duration",
+            "notification_target": "Notification entities or devices",
+            "notify_manual_cancel": "Notify manual cancellations",
+            "notify_auto_cancel": "Notify automatic cancellations",
+            "execute_expired_turn_off": "Execute an expired turn-off after restart",
+            "execute_expired_turn_on": "Execute an expired turn-on after restart",
+            "confirmation_timeout": "State confirmation timeout",
+            "notification_completed_title": "Custom completion title",
+            "notification_completed_message": "Custom completion message",
+            "notification_error_title": "Custom error title",
+            "notification_error_message": "Custom error message",
+            "notification_skipped_title": "Custom skipped title",
+            "notification_skipped_message": "Custom skipped message",
+            "notification_manual_cancel_title": "Custom manual-cancel title",
+            "notification_manual_cancel_message": "Custom manual-cancel message",
+            "notification_auto_cancel_title": "Custom automatic-cancel title",
+            "notification_auto_cancel_message": "Custom automatic-cancel message"
+          },
+          "data_description": {
+            "target_entity": "Entity that will be turned on or off when the timer finishes.",
+            "notification_target": "Optional. Select notify entities, devices, or areas that contain notify entities.",
+            "execute_expired_turn_off": "Recommended: enabled. If Home Assistant was offline when an OFF timer expired, turn the entity off after startup.",
+            "execute_expired_turn_on": "Recommended: disabled. Prevents unexpected activation after a long outage.",
+            "confirmation_timeout": "How long to wait for the entity to confirm the requested state.",
+            "notification_completed_title": "Optional. Example: Timer for {target_name}",
+            "notification_completed_message": "Optional. Example: {target_name} was {action_past} after {duration}.",
+            "notification_error_title": "Optional. Example: Timer error — {target_name}",
+            "notification_error_message": "Optional. Example: {target_name} could not complete {action}. Reason: {reason}.",
+            "notification_skipped_title": "Optional. Example: Timer action skipped",
+            "notification_skipped_message": "Optional. Example: {action} for {target_name} was skipped. Reason: {reason}.",
+            "notification_manual_cancel_title": "Optional. Example: Timer cancelled",
+            "notification_manual_cancel_message": "Optional. Example: {timer_name} was cancelled manually.",
+            "notification_auto_cancel_title": "Optional. Example: Timer cancelled automatically",
+            "notification_auto_cancel_message": "Optional. Example: {target_name} reached the requested state before the timer finished."
+          }
         },
-        "data_description": {
-          "notification_target": "Optional. Select one or more notify entities, devices, or areas that contain notify entities."
+        "reconfigure": {
+          "title": "Configure timer",
+          "description": "Change the target entity and all preferences for this timer. Changes are applied when saved. An active timer cannot be reconfigured. Available variables for notification titles and messages: {timer_name}, {target_name}, {target_entity}, {action}, {action_id}, {action_past}, {duration}, {duration_minutes}, {result}, {reason}, {finished_at}, {restored}, {default_title}, {default_message}. Leave any custom field blank to keep the built-in text.",
+          "data": {
+            "name": "Timer name",
+            "target_entity": "Target entity",
+            "default_action": "Default final action",
+            "default_duration_minutes": "Default duration",
+            "max_duration_minutes": "Maximum duration",
+            "notification_target": "Notification entities or devices",
+            "notify_manual_cancel": "Notify manual cancellations",
+            "notify_auto_cancel": "Notify automatic cancellations",
+            "execute_expired_turn_off": "Execute an expired turn-off after restart",
+            "execute_expired_turn_on": "Execute an expired turn-on after restart",
+            "confirmation_timeout": "State confirmation timeout",
+            "notification_completed_title": "Custom completion title",
+            "notification_completed_message": "Custom completion message",
+            "notification_error_title": "Custom error title",
+            "notification_error_message": "Custom error message",
+            "notification_skipped_title": "Custom skipped title",
+            "notification_skipped_message": "Custom skipped message",
+            "notification_manual_cancel_title": "Custom manual-cancel title",
+            "notification_manual_cancel_message": "Custom manual-cancel message",
+            "notification_auto_cancel_title": "Custom automatic-cancel title",
+            "notification_auto_cancel_message": "Custom automatic-cancel message"
+          },
+          "data_description": {
+            "target_entity": "Entity that will be turned on or off when the timer finishes.",
+            "notification_target": "Optional. Select notify entities, devices, or areas that contain notify entities.",
+            "execute_expired_turn_off": "Recommended: enabled. If Home Assistant was offline when an OFF timer expired, turn the entity off after startup.",
+            "execute_expired_turn_on": "Recommended: disabled. Prevents unexpected activation after a long outage.",
+            "confirmation_timeout": "How long to wait for the entity to confirm the requested state.",
+            "notification_completed_title": "Optional. Example: Timer for {target_name}",
+            "notification_completed_message": "Optional. Example: {target_name} was {action_past} after {duration}.",
+            "notification_error_title": "Optional. Example: Timer error — {target_name}",
+            "notification_error_message": "Optional. Example: {target_name} could not complete {action}. Reason: {reason}.",
+            "notification_skipped_title": "Optional. Example: Timer action skipped",
+            "notification_skipped_message": "Optional. Example: {action} for {target_name} was skipped. Reason: {reason}.",
+            "notification_manual_cancel_title": "Optional. Example: Timer cancelled",
+            "notification_manual_cancel_message": "Optional. Example: {timer_name} was cancelled manually.",
+            "notification_auto_cancel_title": "Optional. Example: Timer cancelled automatically",
+            "notification_auto_cancel_message": "Optional. Example: {target_name} reached the requested state before the timer finished."
+          }
         }
       },
-      "reconfigure": {
-        "title": "Reconfigure target entity",
-        "description": "Change the entity controlled by this timer. Timer preferences are preserved.",
-        "data": {
-          "target_entity": "Target entity"
-        }
+      "error": {
+        "name_required": "Enter a name.",
+        "timer_active": "Cancel or wait for the active timer before reconfiguring it.",
+        "unsupported_domain": "This entity domain is not supported.",
+        "entity_not_found": "The entity does not currently exist in Home Assistant.",
+        "already_configured": "Another Smart Entity Timer already controls this entity.",
+        "duration_above_maximum": "The default duration cannot exceed the maximum duration.",
+        "invalid_notification_template": "The template contains an unsupported placeholder or invalid braces."
+      },
+      "abort": {
+        "reconfigure_successful": "The timer was updated successfully."
       }
-    },
-    "error": {
-      "name_required": "Enter a name.",
-      "timer_active": "Cancel or wait for the active timer before reconfiguring it.",
-      "unsupported_domain": "This entity domain is not supported.",
-      "entity_not_found": "The entity does not currently exist in Home Assistant.",
-      "already_configured": "A Smart Entity Timer already controls this entity."
-    },
-    "abort": {
-      "already_configured": "This entity is already configured.",
-      "reconfigure_successful": "The target entity was reconfigured successfully."
-    }
-  },
-  "options": {
-    "step": {
-      "init": {
-        "title": "Timer options",
-        "description": "Available placeholders: {timer_name}, {target_name}, {target_entity}, {action}, {action_id}, {action_past}, {duration}, {duration_minutes}, {result}, {reason}, {finished_at}, {restored}, {default_title}, {default_message}. Example title: Timer for {target_name}. Example message: {default_message} Finished: {finished_at}. Leave any custom field blank to keep the built-in text.",
-        "data": {
-          "default_action": "Default final action",
-          "default_duration_minutes": "Default duration",
-          "max_duration_minutes": "Maximum duration",
-          "notification_target": "Notification entities or devices",
-          "notify_manual_cancel": "Notify manual cancellations",
-          "notify_auto_cancel": "Notify automatic cancellations",
-          "execute_expired_turn_off": "Execute an expired turn-off after restart",
-          "execute_expired_turn_on": "Execute an expired turn-on after restart",
-          "confirmation_timeout": "State confirmation timeout",
-          "notification_completed_title": "Custom completion title",
-          "notification_completed_message": "Custom completion message",
-          "notification_error_title": "Custom error title",
-          "notification_error_message": "Custom error message",
-          "notification_skipped_title": "Custom skipped title",
-          "notification_skipped_message": "Custom skipped message",
-          "notification_manual_cancel_title": "Custom manual-cancel title",
-          "notification_manual_cancel_message": "Custom manual-cancel message",
-          "notification_auto_cancel_title": "Custom automatic-cancel title",
-          "notification_auto_cancel_message": "Custom automatic-cancel message"
-        },
-        "data_description": {
-          "execute_expired_turn_off": "Recommended: enabled. If Home Assistant was offline when an OFF timer expired, turn the entity off after startup.",
-          "execute_expired_turn_on": "Recommended: disabled. Prevents unexpected activation after a long outage.",
-          "confirmation_timeout": "How long to wait for the entity to confirm the requested state.",
-          "notification_completed_title": "Optional. Example: Timer for {target_name}",
-          "notification_completed_message": "Optional. Example: {target_name} was {action_past} after {duration}.",
-          "notification_error_title": "Optional. Example: Timer error — {target_name}",
-          "notification_error_message": "Optional. Example: {target_name} could not complete {action}. Reason: {reason}.",
-          "notification_skipped_title": "Optional. Example: Timer action skipped",
-          "notification_skipped_message": "Optional. Example: {action} for {target_name} was skipped. Reason: {reason}.",
-          "notification_manual_cancel_title": "Optional. Example: Timer cancelled",
-          "notification_manual_cancel_message": "Optional. Example: {timer_name} was cancelled manually.",
-          "notification_auto_cancel_title": "Optional. Example: Timer cancelled automatically",
-          "notification_auto_cancel_message": "Optional. Example: {target_name} reached the requested state before the timer finished."
-        }
-      }
-    },
-    "error": {
-      "timer_active": "Cancel or wait for the active timer before changing options.",
-      "duration_above_maximum": "The default duration cannot exceed the maximum duration.",
-      "invalid_notification_template": "The notification template contains an unsupported placeholder or invalid braces."
     }
   },
   "selector": {

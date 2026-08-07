@@ -390,3 +390,154 @@ Use Smart Entity Timer Card 0.2.2 without changing its configuration.
 
 Expected: the card behaves exactly as with backend 0.1.3 and no card configuration changes are required.
 
+
+---
+
+# 0.3.0 centralized integration / Config Subentries acceptance tests
+
+Run these tests on a Home Assistant backup or test installation. Do not publish 0.3.0 until the clean-install and legacy-migration paths both pass.
+
+## T40 — Clean install appears under Integrations
+
+1. Use an instance with no Smart Entity Timer config entry.
+2. Install the 0.3.0 candidate manually and restart Home Assistant.
+3. Open **Settings → Devices & services → Integrations → Add integration**.
+4. Select **Smart Entity Timer**.
+
+Expected:
+
+- exactly one Smart Entity Timer parent integration is created;
+- it is managed from **Integrations**, not from the Helpers list;
+- the first **Add timer** subentry flow opens automatically;
+- no duplicate parent integration can be created.
+
+## T41 — First timer and additional timers
+
+1. Complete the first Add timer flow.
+2. Return to the Smart Entity Timer integration page.
+3. Add at least two more timers with different target entities.
+
+Expected:
+
+- all timers appear below the same Smart Entity Timer parent;
+- each timer creates exactly five entities;
+- every timer operates independently;
+- duplicate target entities are rejected.
+
+## T42 — Centralized reconfiguration
+
+1. Open one timer from the Smart Entity Timer integration page.
+2. Use **Reconfigure**.
+3. Change its name, duration defaults, target if desired, notification settings, and one custom message.
+
+Expected:
+
+- the timer is configured without visiting Helpers;
+- its five existing entity IDs do not change merely because the timer title or preferences changed;
+- the new settings are active after the parent reload;
+- existing cards continue to work.
+
+## T43 — Configuration changes while a timer is active
+
+1. Start any timer.
+2. Attempt to add or reconfigure a timer while it is active.
+
+Expected:
+
+- the flow asks you to cancel or wait for the active timer;
+- no parent reload interrupts the active countdown;
+- after the timer finishes/cancels, add/reconfigure works normally.
+
+## T44 — Delete one timer subentry
+
+1. Create a disposable timer.
+2. Remove that timer from the Smart Entity Timer integration page.
+
+Expected:
+
+- only that timer's five entities are removed;
+- other timers remain configured and functional;
+- the Smart Entity Timer parent integration remains.
+
+## T45 — Upgrade one existing 0.2.0 timer
+
+1. On a separate backup/test instance, install stable 0.2.0.
+2. Create one timer and record all five entity IDs.
+3. Configure notification preferences and a custom message.
+4. Replace the integration files with the 0.3.0 candidate.
+5. Restart Home Assistant.
+
+Expected:
+
+- the former Helper is now a Timer subentry under one Smart Entity Timer integration;
+- all five entity IDs are exactly unchanged;
+- target, duration/action preferences, restart policy, notification target, and custom messages are preserved;
+- the dashboard card still points at the same status sensor and loads normally.
+
+## T46 — Upgrade multiple existing 0.2.0 timers
+
+1. On a 0.2.0 test instance create at least three timers.
+2. Record each timer's five entity IDs and configuration.
+3. Upgrade manually to 0.3.0 and restart.
+
+Expected:
+
+- there is exactly one Smart Entity Timer integration entry;
+- it contains all three timer subentries;
+- no timer is lost or duplicated;
+- all recorded entity IDs remain unchanged;
+- all timer configurations remain associated with the correct target.
+
+## T47 — Optional robustness: upgrade with a persisted active timer
+
+This test is **not part of the 0.3.0 release gate**. The supported 0.2.x → 0.3.0 upgrade procedure requires every Smart Entity Timer to be idle before installing the update.
+
+If a developer wants to exercise the unsupported edge case anyway:
+
+1. On 0.2.0 start a timer long enough to survive a Home Assistant restart.
+2. While it is active, replace the files with 0.3.0 and restart Home Assistant.
+3. Do not delete the old helper/config entry beforehand.
+
+Possible robustness goal:
+
+- migration creates the corresponding timer subentry;
+- the original persistent storage is found using the preserved legacy timer ID;
+- the timer restores with its original absolute finish time;
+- it completes/cancels according to the normal restart policy exactly once.
+
+Failure of this optional edge-case test does not block release as long as the documented idle-timer upgrade procedure works.
+
+## T48 — Smart Entity Timer Card 0.2.2 compatibility after migration
+
+1. Keep an existing 0.2.2 dashboard card from before the migration.
+2. After upgrading to 0.3.0, open the card in at least two browsers.
+3. Change duration/action, start, cancel, and complete a timer.
+
+Expected:
+
+- the card YAML requires no changes;
+- `card_api_version` remains `2`;
+- cross-browser synchronization remains correct;
+- companion entity IDs resolve correctly.
+
+## T49 — Notifications and lifecycle events after topology migration
+
+1. Run one completed timer with a custom notification.
+2. Run one automatic cancellation.
+3. Listen for the existing lifecycle event types.
+
+Expected:
+
+- customized notifications work exactly as in 0.2.0;
+- `started`, `completed`, `cancelled`, `skipped`, and `error` event contracts remain compatible;
+- no notification target identifiers appear in public event data or diagnostics.
+
+## T50 — HACS/release gate
+
+Release gate after required tests T40-T46 and T48-T49 pass (T47 is optional):
+
+1. Upload the complete 0.3.0 repository candidate to GitHub.
+2. Confirm Python checks, Hassfest, and HACS validation are green.
+3. Publish `v0.3.0` only after the UI, migration, Card API, notifications, and events have passed and all repository CI checks are green.
+
+Expected: 0.3.0 becomes a normal HACS update in the existing `smart-entity-timer` repository; no new repository or domain is required.

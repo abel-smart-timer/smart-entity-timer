@@ -11,22 +11,30 @@ from homeassistant.helpers.typing import ConfigType
 
 from .const import (
     ACTIONS,
+    ARCHITECTURE_SUBENTRIES_V1,
     ATTR_DURATION_MINUTES,
     ATTR_END_ACTION,
-    CONF_TARGET_ENTITY,
+    CONF_ARCHITECTURE,
+    CONFIG_ENTRY_VERSION,
     DOMAIN,
     PLATFORMS,
     SERVICE_CANCEL,
     SERVICE_SET_VALUES,
     SERVICE_START,
 )
-from .runtime import SmartEntityTimerRuntime
+from .manager import SmartEntityTimerManager
+from .migration import async_consolidate_legacy_entries
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Register integration-wide entity services."""
+    """Prepare topology migration and register integration-wide entity services."""
+    # Home Assistant performs normal integration setup before config-entry setup. This
+    # gives 0.3.x a safe window to consolidate legacy one-timer config entries into the
+    # new single parent + config-subentry topology before any timer runtime is loaded.
+    await async_consolidate_legacy_entries(hass)
+
     hass.data.setdefault(DOMAIN, {})
 
     service.async_register_platform_entity_service(
@@ -69,37 +77,42 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 
 async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Migrate v0.1.2 entries so structural data lives in config-entry data."""
-    if entry.version == 1 and entry.minor_version < 2:
-        data = dict(entry.data)
-        options = dict(entry.options)
-        if CONF_TARGET_ENTITY in options:
-            data[CONF_TARGET_ENTITY] = options.pop(CONF_TARGET_ENTITY)
-        hass.config_entries.async_update_entry(
-            entry,
-            data=data,
-            options=options,
-            version=1,
-            minor_version=2,
+    """Migrate legacy per-timer entries to the 0.3.x parent/subentry architecture."""
+    if entry.version < CONFIG_ENTRY_VERSION:
+        await async_consolidate_legacy_entries(hass)
+        current = hass.config_entries.async_get_entry(entry.entry_id)
+        # A non-parent legacy entry can be removed by consolidation. That is expected;
+        # its entities and configuration now belong to the selected parent entry.
+        if current is None:
+            return True
+        return (
+            current.version == CONFIG_ENTRY_VERSION
+            and current.data.get(CONF_ARCHITECTURE) == ARCHITECTURE_SUBENTRIES_V1
         )
     return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up one configured timer."""
-    runtime = SmartEntityTimerRuntime(hass, entry)
-    entry.runtime_data = runtime
-    await runtime.async_initialize()
+    """Set up the single parent entry and all configured timer subentries."""
+    manager = SmartEntityTimerManager(hass, entry)
+    entry.runtime_data = manager
+    await manager.async_initialize()
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     # All companion entities are now registered; republish Card API v2 attributes.
-    runtime.async_publish_state()
+    manager.async_publish_states()
+    entry.async_on_unload(entry.add_update_listener(_async_reload_entry))
     return True
 
 
+async def _async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Reload the parent when timer subentries are added, changed, or removed."""
+    await hass.config_entries.async_reload(entry.entry_id)
+
+
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload one configured timer."""
+    """Unload all timers owned by the parent entry."""
     unloaded = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unloaded:
-        runtime: SmartEntityTimerRuntime = entry.runtime_data
-        await runtime.async_shutdown()
+        manager: SmartEntityTimerManager = entry.runtime_data
+        await manager.async_shutdown()
     return unloaded

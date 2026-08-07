@@ -6,9 +6,16 @@ from homeassistant.const import Platform
 
 DOMAIN = "smart_entity_timer"
 NAME = "Smart Entity Timer"
-VERSION = "0.2.0"
+VERSION = "0.3.0"
 MIN_HA_VERSION = "2026.7.0"
 CARD_API_VERSION = 2
+
+# Config-entry architecture used by Smart Entity Timer 0.3.x.
+CONFIG_ENTRY_VERSION = 2
+CONF_ARCHITECTURE = "architecture"
+ARCHITECTURE_SUBENTRIES_V1 = "subentries_v1"
+SUBENTRY_TYPE_TIMER = "timer"
+CONF_TIMER_ID = "timer_id"
 
 PLATFORMS: list[Platform] = [
     Platform.SENSOR,

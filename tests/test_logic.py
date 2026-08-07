@@ -96,7 +96,12 @@ class ApiContractTests(unittest.TestCase):
         self.assertEqual(CONST.SERVICE_SET_VALUES, "set_values")
 
     def test_version(self):
-        self.assertEqual(CONST.VERSION, "0.2.0")
+        self.assertEqual(CONST.VERSION, "0.3.0")
+
+    def test_subentry_architecture_constants(self):
+        self.assertEqual(CONST.CONFIG_ENTRY_VERSION, 2)
+        self.assertEqual(CONST.SUBENTRY_TYPE_TIMER, "timer")
+        self.assertEqual(CONST.ARCHITECTURE_SUBENTRIES_V1, "subentries_v1")
 
     def test_notification_and_event_contract(self):
         self.assertEqual(len(CONST.NOTIFICATION_TEMPLATE_KEYS), 5)

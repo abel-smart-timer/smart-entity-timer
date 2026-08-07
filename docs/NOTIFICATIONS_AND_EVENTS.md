@@ -1,6 +1,6 @@
-# Notifications and lifecycle events — 0.2.0
+# Notifications and lifecycle events — 0.2.0 / 0.3.0
 
-Smart Entity Timer 0.2.0 keeps the existing notification delivery model and adds optional per-result text customization plus public lifecycle events.
+Smart Entity Timer 0.3.0 preserves the notification/event contract introduced in 0.2.0. It keeps the existing notification delivery model and adds optional per-result text customization plus public lifecycle events.
 
 ## Notification categories
 
@@ -13,9 +13,9 @@ Smart Entity Timer 0.2.0 keeps the existing notification delivery model and adds
 Titles and messages are configured independently. Empty values use the built-in localized text.
 
 
-## Quick examples for the options screen
+## Quick examples for the Timer reconfigure screen
 
-Leave a field blank to keep the built-in localized text. The options screen also shows the supported placeholders and examples directly above/below the notification fields.
+Leave a field blank to keep the built-in localized text. The Timer add/reconfigure screen also shows the supported placeholders and examples directly above/below the notification fields.
 
 ### Completion
 

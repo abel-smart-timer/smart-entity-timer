@@ -8,6 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .entity import SmartEntityTimerEntity
+from .manager import SmartEntityTimerManager
 from .runtime import SmartEntityTimerRuntime
 
 
@@ -16,13 +17,15 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    runtime: SmartEntityTimerRuntime = entry.runtime_data
-    async_add_entities(
-        [
-            SmartEntityTimerStartButton(runtime),
-            SmartEntityTimerCancelButton(runtime),
-        ]
-    )
+    manager: SmartEntityTimerManager = entry.runtime_data
+    for subentry_id, runtime in manager.iter_runtimes():
+        async_add_entities(
+            [
+                SmartEntityTimerStartButton(runtime),
+                SmartEntityTimerCancelButton(runtime),
+            ],
+            config_subentry_id=subentry_id,
+        )
 
 
 class SmartEntityTimerStartButton(SmartEntityTimerEntity, ButtonEntity):

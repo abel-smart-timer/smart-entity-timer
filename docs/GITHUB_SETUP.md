@@ -1,70 +1,57 @@
 # Mantenimiento del repositorio desde el navegador
 
-Repositorio:
+Repositorio existente para 0.3.0:
 
 ```text
 https://github.com/abel-smart-timer/smart-entity-timer
 ```
 
-Versión estable publicada:
+No se crea un repositorio nuevo ni se cambia el dominio `smart_entity_timer`.
+
+Versión estable anterior:
 
 ```text
-v0.1.3
+v0.2.0
 ```
 
-Candidata de desarrollo actual:
+Nueva versión:
 
 ```text
-0.2.0
+v0.3.0
 ```
 
-La versión 0.1.3 debe permanecer como Release estable mientras 0.2.0 se prueba en HAOS real.
+## Validación completada
 
-## Probar 0.2.0 sin reemplazar todavía el Release estable
+La candidata 0.3.0 ya pasó en Home Assistant real:
 
-1. Descarga el ZIP de instalación 0.2.0 generado para pruebas.
-2. Haz respaldo de Home Assistant.
-3. Reemplaza `/config/custom_components/smart_entity_timer/` con los archivos 0.2.0.
-4. Reinicia Home Assistant.
-5. Conserva los helpers existentes.
-6. Ejecuta T30–T36 de `docs/TEST_PLAN.md`.
-7. Si aparece un problema, vuelve a instalar el Release 0.1.3 desde HACS o restaura el respaldo.
+- instalación limpia;
+- creación de múltiples timers;
+- reconfiguración centralizada;
+- bloqueo de cambios con timers activos;
+- eliminación individual de subentries;
+- migración de uno y varios timers 0.2.0;
+- conservación de entity IDs;
+- Card 0.2.2;
+- notificaciones personalizadas y eventos.
 
-## Subir código 0.2.0 a GitHub
+La prueba de actualizar mientras un timer está activo queda fuera del release gate. El procedimiento soportado exige que todos los timers estén detenidos antes de actualizar.
 
-No es necesario subirlo a `main` antes de terminar las pruebas locales. Cuando la candidata pase las pruebas:
+## Subir 0.3.0
 
 1. Abre `abel-smart-timer/smart-entity-timer`.
-2. Selecciona **Add file → Upload files**.
-3. Arrastra el contenido del ZIP completo del repositorio 0.2.0.
-4. Usa un commit descriptivo, por ejemplo `Add customizable notifications and lifecycle events in 0.2.0`.
-5. Revisa **Actions** y confirma Python checks, Hassfest y HACS validation en verde.
-6. Repite una prueba rápida desde HAOS con esos mismos archivos.
-7. Solo entonces crea el Release `v0.2.0`.
+2. Usa **Add file → Upload files**.
+3. Sube el contenido completo del ZIP de repositorio 0.3.0.
+4. Commit sugerido: `Centralize timer management with config subentries in 0.3.0`.
+5. Revisa **Actions**.
+6. Confirma Python checks, Hassfest y HACS validation en verde.
+7. Crea el Release `v0.3.0` y márcalo como **Latest**, no como pre-release.
 
-## No reutilizar tags
-
-El Release estable `v0.1.3` representa el código ya validado y no debe modificarse ni reemplazarse. Cada nueva versión usa un tag nuevo.
-
-## HACS
-
-Smart Entity Timer se distribuye como integración HACS. La estructura debe conservarse:
+## Compatibilidad
 
 ```text
-custom_components/
-└── smart_entity_timer/
-    ├── manifest.json
-    ├── __init__.py
-    └── ...
+Smart Entity Timer       0.3.0
+Smart Entity Timer Card  0.2.2
+Card API                  2
 ```
 
-## Tarjeta compatible
-
-```text
-Smart Entity Timer estable        0.1.3
-Smart Entity Timer candidata      0.2.0
-Smart Entity Timer Card           0.2.2
-Card API                           2
-```
-
-0.2.0 no cambia Card API, por lo que la tarjeta 0.2.2 debe continuar funcionando sin modificaciones.
+La actualización 0.3.0 cambia la topología de configuración, no el contrato Card API.

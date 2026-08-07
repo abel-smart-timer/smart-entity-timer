@@ -9,6 +9,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import ACTIONS
 from .entity import SmartEntityTimerEntity
+from .manager import SmartEntityTimerManager
 from .runtime import SmartEntityTimerRuntime
 
 
@@ -17,8 +18,12 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    runtime: SmartEntityTimerRuntime = entry.runtime_data
-    async_add_entities([SmartEntityTimerActionSelect(runtime)])
+    manager: SmartEntityTimerManager = entry.runtime_data
+    for subentry_id, runtime in manager.iter_runtimes():
+        async_add_entities(
+            [SmartEntityTimerActionSelect(runtime)],
+            config_subentry_id=subentry_id,
+        )
 
 
 class SmartEntityTimerActionSelect(SmartEntityTimerEntity, SelectEntity):
