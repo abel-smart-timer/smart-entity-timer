@@ -6,9 +6,9 @@ from homeassistant.const import Platform
 
 DOMAIN = "smart_entity_timer"
 NAME = "Smart Entity Timer"
-VERSION = "0.1.2"
+VERSION = "0.1.3"
 MIN_HA_VERSION = "2026.7.0"
-CARD_API_VERSION = 1
+CARD_API_VERSION = 2
 
 PLATFORMS: list[Platform] = [
     Platform.SENSOR,
@@ -65,13 +65,14 @@ REASON_CONFIRMATION_TIMEOUT = "confirmation_timeout"
 
 SERVICE_START = "start"
 SERVICE_CANCEL = "cancel"
+SERVICE_SET_VALUES = "set_values"
 ATTR_DURATION_MINUTES = "duration_minutes"
 ATTR_END_ACTION = "end_action"
 
 STORAGE_VERSION = 1
 STORAGE_KEY = f"{DOMAIN}.{{entry_id}}"
 
-# Domains with reliable Home Assistant turn_on/turn_off semantics for v0.1.2.
+# Domains with reliable Home Assistant turn_on/turn_off semantics.
 SUPPORTED_DOMAINS: tuple[str, ...] = (
     "climate",
     "fan",

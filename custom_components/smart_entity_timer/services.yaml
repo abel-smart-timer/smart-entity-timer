@@ -35,3 +35,33 @@ cancel:
     entity:
       integration: smart_entity_timer
       domain: sensor
+set_values:
+  name: Set timer values
+  description: Atomically update the selected duration and/or final action while the timer is idle.
+  target:
+    entity:
+      integration: smart_entity_timer
+      domain: sensor
+  fields:
+    duration_minutes:
+      name: Duration
+      description: Optional duration in whole minutes.
+      required: false
+      example: 90
+      selector:
+        number:
+          min: 1
+          max: 10080
+          step: 1
+          mode: box
+          unit_of_measurement: min
+    end_action:
+      name: Final action
+      description: Optional selected final action.
+      required: false
+      example: turn_off
+      selector:
+        select:
+          options:
+            - turn_on
+            - turn_off

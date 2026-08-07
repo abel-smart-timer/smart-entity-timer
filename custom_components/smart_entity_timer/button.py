@@ -29,9 +29,10 @@ class SmartEntityTimerStartButton(SmartEntityTimerEntity, ButtonEntity):
     """Start the configured timer."""
 
     _attr_icon = "mdi:timer-play-outline"
+    _attr_translation_key = "start"
 
     def __init__(self, runtime: SmartEntityTimerRuntime) -> None:
-        super().__init__(runtime, "start", "Iniciar", "Start")
+        super().__init__(runtime, "start")
 
     @property
     def available(self) -> bool:
@@ -45,9 +46,10 @@ class SmartEntityTimerCancelButton(SmartEntityTimerEntity, ButtonEntity):
     """Cancel an active timer."""
 
     _attr_icon = "mdi:timer-cancel-outline"
+    _attr_translation_key = "cancel"
 
     def __init__(self, runtime: SmartEntityTimerRuntime) -> None:
-        super().__init__(runtime, "cancel", "Cancelar", "Cancel")
+        super().__init__(runtime, "cancel")
 
     @property
     def available(self) -> bool:

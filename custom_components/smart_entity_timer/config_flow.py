@@ -79,15 +79,16 @@ def _base_defaults() -> dict[str, Any]:
 
 
 class SmartEntityTimerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Create Smart Entity Timer entries from the UI."""
+    """Create and reconfigure Smart Entity Timer entries from the UI."""
 
     VERSION = 1
+    MINOR_VERSION = 2
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None):
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            errors = self._validate(user_input)
+            errors = self._validate_target_and_name(user_input)
             if not errors:
                 title = str(user_input.pop(CONF_NAME)).strip()
                 return self.async_create_entry(title=title, data=user_input)
@@ -99,9 +100,9 @@ class SmartEntityTimerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Required(CONF_TARGET_ENTITY): ENTITY_SELECTOR,
                 vol.Required(
                     CONF_DEFAULT_ACTION,
-                    default=(
-                        user_input or defaults
-                    ).get(CONF_DEFAULT_ACTION, DEFAULT_ACTION),
+                    default=(user_input or defaults).get(
+                        CONF_DEFAULT_ACTION, DEFAULT_ACTION
+                    ),
                 ): ACTION_SELECTOR,
                 vol.Required(
                     CONF_DEFAULT_DURATION_MINUTES,
@@ -125,19 +126,71 @@ class SmartEntityTimerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-    def _validate(self, user_input: dict[str, Any]) -> dict[str, str]:
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ):
+        """Change structural setup data such as the controlled target entity."""
+        entry = self._get_reconfigure_entry()
+        errors: dict[str, str] = {}
+        current_target = str(entry.data.get(CONF_TARGET_ENTITY, ""))
+
+        if user_input is not None:
+            runtime = getattr(entry, "runtime_data", None)
+            if runtime is not None and runtime.is_busy:
+                errors["base"] = "timer_active"
+            else:
+                target = str(user_input.get(CONF_TARGET_ENTITY, ""))
+                errors.update(
+                    self._validate_target(
+                        target,
+                        exclude_entry_id=entry.entry_id,
+                    )
+                )
+
+            if not errors:
+                return self.async_update_reload_and_abort(
+                    entry,
+                    data_updates={CONF_TARGET_ENTITY: user_input[CONF_TARGET_ENTITY]},
+                )
+
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    CONF_TARGET_ENTITY,
+                    default=(user_input or {}).get(
+                        CONF_TARGET_ENTITY,
+                        current_target,
+                    ),
+                ): ENTITY_SELECTOR,
+            }
+        )
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=schema,
+            errors=errors,
+        )
+
+    def _validate_target_and_name(self, user_input: dict[str, Any]) -> dict[str, str]:
         errors: dict[str, str] = {}
         name = str(user_input.get(CONF_NAME, "")).strip()
-        target = str(user_input.get(CONF_TARGET_ENTITY, ""))
-        domain = target.split(".", 1)[0] if "." in target else ""
-
         if not name:
             errors[CONF_NAME] = "name_required"
+        errors.update(self._validate_target(str(user_input.get(CONF_TARGET_ENTITY, ""))))
+        return errors
+
+    def _validate_target(
+        self,
+        target: str,
+        *,
+        exclude_entry_id: str | None = None,
+    ) -> dict[str, str]:
+        errors: dict[str, str] = {}
+        domain = target.split(".", 1)[0] if "." in target else ""
         if domain not in SUPPORTED_DOMAINS:
             errors[CONF_TARGET_ENTITY] = "unsupported_domain"
         elif self.hass.states.get(target) is None:
             errors[CONF_TARGET_ENTITY] = "entity_not_found"
-        elif self._target_is_configured(target):
+        elif self._target_is_configured(target, exclude_entry_id=exclude_entry_id):
             errors[CONF_TARGET_ENTITY] = "already_configured"
         return errors
 
@@ -150,6 +203,7 @@ class SmartEntityTimerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         for entry in self._async_current_entries():
             if entry.entry_id == exclude_entry_id:
                 continue
+            # v0.1.2 could temporarily store an overridden target in options.
             effective = {**entry.data, **entry.options}
             if effective.get(CONF_TARGET_ENTITY) == target:
                 return True
@@ -162,26 +216,21 @@ class SmartEntityTimerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class SmartEntityTimerOptionsFlow(config_entries.OptionsFlowWithReload):
-    """Edit timer behavior and reload the entry automatically."""
+    """Edit non-structural timer preferences and reload automatically."""
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None):
         errors: dict[str, str] = {}
-        current = {**_base_defaults(), **self.config_entry.data, **self.config_entry.options}
+        current = {
+            **_base_defaults(),
+            **self.config_entry.data,
+            **self.config_entry.options,
+        }
 
         if user_input is not None:
             runtime = getattr(self.config_entry, "runtime_data", None)
             if runtime is not None and runtime.is_busy:
                 errors["base"] = "timer_active"
             else:
-                target = str(user_input[CONF_TARGET_ENTITY])
-                domain = target.split(".", 1)[0] if "." in target else ""
-                if domain not in SUPPORTED_DOMAINS:
-                    errors[CONF_TARGET_ENTITY] = "unsupported_domain"
-                elif self.hass.states.get(target) is None:
-                    errors[CONF_TARGET_ENTITY] = "entity_not_found"
-                elif self._target_is_configured(target):
-                    errors[CONF_TARGET_ENTITY] = "already_configured"
-
                 default_duration = int(user_input[CONF_DEFAULT_DURATION_MINUTES])
                 maximum = int(user_input[CONF_MAX_DURATION_MINUTES])
                 if default_duration > maximum:
@@ -197,10 +246,6 @@ class SmartEntityTimerOptionsFlow(config_entries.OptionsFlowWithReload):
         )
         schema = vol.Schema(
             {
-                vol.Required(
-                    CONF_TARGET_ENTITY,
-                    default=current[CONF_TARGET_ENTITY],
-                ): ENTITY_SELECTOR,
                 vol.Required(
                     CONF_DEFAULT_ACTION,
                     default=current[CONF_DEFAULT_ACTION],
@@ -260,12 +305,3 @@ class SmartEntityTimerOptionsFlow(config_entries.OptionsFlowWithReload):
             data_schema=schema,
             errors=errors,
         )
-
-    def _target_is_configured(self, target: str) -> bool:
-        for entry in self.hass.config_entries.async_entries(DOMAIN):
-            if entry.entry_id == self.config_entry.entry_id:
-                continue
-            effective = {**entry.data, **entry.options}
-            if effective.get(CONF_TARGET_ENTITY) == target:
-                return True
-        return False

@@ -15,25 +15,33 @@
         "data_description": {
           "notification_target": "Optional. Select one or more notify entities, devices, or areas that contain notify entities."
         }
+      },
+      "reconfigure": {
+        "title": "Reconfigure target entity",
+        "description": "Change the entity controlled by this timer. Timer preferences are preserved.",
+        "data": {
+          "target_entity": "Target entity"
+        }
       }
     },
     "error": {
       "name_required": "Enter a name.",
-      "unsupported_domain": "This entity domain is not supported in version 0.1.2.",
+      "timer_active": "Cancel or wait for the active timer before reconfiguring it.",
+      "unsupported_domain": "This entity domain is not supported in version 0.1.3.",
       "entity_not_found": "The entity does not currently exist in Home Assistant.",
       "already_configured": "A Smart Entity Timer already controls this entity."
     },
     "abort": {
-      "already_configured": "This entity is already configured."
+      "already_configured": "This entity is already configured.",
+      "reconfigure_successful": "The target entity was reconfigured successfully."
     }
   },
   "options": {
     "step": {
       "init": {
         "title": "Timer options",
-        "description": "An active timer must be cancelled or completed before changing these options.",
+        "description": "These options change timer preferences. Use Reconfigure to change the target entity.",
         "data": {
-          "target_entity": "Target entity",
           "default_action": "Default final action",
           "default_duration_minutes": "Default duration",
           "max_duration_minutes": "Maximum duration",
@@ -53,9 +61,6 @@
     },
     "error": {
       "timer_active": "Cancel or wait for the active timer before changing options.",
-      "unsupported_domain": "This entity domain is not supported in version 0.1.2.",
-      "entity_not_found": "The entity does not currently exist in Home Assistant.",
-      "already_configured": "A Smart Entity Timer already controls this entity.",
       "duration_above_maximum": "The default duration cannot exceed the maximum duration."
     }
   },
@@ -70,7 +75,7 @@
   "entity": {
     "sensor": {
       "status": {
-        "name": "Timer status",
+        "name": "{timer_name} Timer status",
         "state": {
           "idle": "Idle",
           "active": "Active",
@@ -79,13 +84,26 @@
         }
       }
     },
+    "number": {
+      "duration": {
+        "name": "{timer_name} Duration"
+      }
+    },
     "select": {
       "end_action": {
-        "name": "Final action",
+        "name": "{timer_name} Action",
         "state": {
           "turn_on": "Turn on",
           "turn_off": "Turn off"
         }
+      }
+    },
+    "button": {
+      "start": {
+        "name": "{timer_name} Start"
+      },
+      "cancel": {
+        "name": "{timer_name} Cancel"
       }
     }
   },
@@ -107,6 +125,20 @@
     "cancel": {
       "name": "Cancel timer",
       "description": "Cancel an active timer without changing its target entity."
+    },
+    "set_values": {
+      "name": "Set timer values",
+      "description": "Atomically update duration and/or action while the timer is idle.",
+      "fields": {
+        "duration_minutes": {
+          "name": "Duration",
+          "description": "Optional duration in whole minutes."
+        },
+        "end_action": {
+          "name": "Final action",
+          "description": "Optional selected final action."
+        }
+      }
     }
   }
 }

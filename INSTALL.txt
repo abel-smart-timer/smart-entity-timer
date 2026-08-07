@@ -1,13 +1,18 @@
-SMART ENTITY TIMER 0.1.2 — MANUAL INSTALLATION
+SMART ENTITY TIMER 0.1.3 — MANUAL INSTALLATION / UPDATE
 
 1. Create a Home Assistant backup.
-2. Extract the installation ZIP directly into Home Assistant's /config directory.
-3. Confirm this file exists:
-   /config/custom_components/smart_entity_timer/manifest.json
+2. Copy custom_components/smart_entity_timer into:
+   /config/custom_components/smart_entity_timer
+3. Replace the existing files if upgrading from 0.1.2.
 4. Restart Home Assistant.
-5. Go to Settings > Devices & services > Add integration.
-6. Search for Smart Entity Timer.
+5. Open Settings > Devices & services > Helpers.
+6. Create Smart Entity Timer helpers from there.
+
+UPGRADE NOTES FROM 0.1.2
+- Do not delete existing helpers.
+- Existing helper entries are migrated automatically.
+- Existing unique IDs remain unchanged.
+- The target entity is now changed with Reconfigure, not Options.
+- Card API v2 is intended for Smart Entity Timer Card 0.1.1 or newer.
 
 Minimum Home Assistant version: 2026.7.0
-
-This release contains the integration/backend only. The custom dashboard card is the next development stage after functional testing.

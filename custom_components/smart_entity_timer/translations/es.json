@@ -15,25 +15,33 @@
         "data_description": {
           "notification_target": "Opcional. Selecciona una o varias entidades notify, dispositivos o áreas que contengan entidades notify."
         }
+      },
+      "reconfigure": {
+        "title": "Reconfigurar entidad objetivo",
+        "description": "Cambia la entidad controlada por este temporizador. Las preferencias del temporizador se conservan.",
+        "data": {
+          "target_entity": "Entidad objetivo"
+        }
       }
     },
     "error": {
       "name_required": "Introduce un nombre.",
-      "unsupported_domain": "Este dominio de entidad no es compatible con la versión 0.1.2.",
+      "timer_active": "Cancela o espera a que termine el temporizador activo antes de reconfigurarlo.",
+      "unsupported_domain": "Este dominio de entidad no es compatible con la versión 0.1.3.",
       "entity_not_found": "La entidad no existe actualmente en Home Assistant.",
       "already_configured": "Esta entidad ya está controlada por otro Smart Entity Timer."
     },
     "abort": {
-      "already_configured": "Esta entidad ya está configurada."
+      "already_configured": "Esta entidad ya está configurada.",
+      "reconfigure_successful": "La entidad objetivo fue reconfigurada correctamente."
     }
   },
   "options": {
     "step": {
       "init": {
         "title": "Opciones del temporizador",
-        "description": "Debes cancelar o esperar a que termine el temporizador activo antes de cambiar estas opciones.",
+        "description": "Estas opciones cambian preferencias del temporizador. Para cambiar la entidad objetivo usa Reconfigurar.",
         "data": {
-          "target_entity": "Entidad objetivo",
           "default_action": "Acción final predeterminada",
           "default_duration_minutes": "Duración predeterminada",
           "max_duration_minutes": "Duración máxima",
@@ -53,9 +61,6 @@
     },
     "error": {
       "timer_active": "Cancela o espera a que termine el temporizador activo antes de cambiar las opciones.",
-      "unsupported_domain": "Este dominio de entidad no es compatible con la versión 0.1.2.",
-      "entity_not_found": "La entidad no existe actualmente en Home Assistant.",
-      "already_configured": "Esta entidad ya está controlada por otro Smart Entity Timer.",
       "duration_above_maximum": "La duración predeterminada no puede superar la duración máxima."
     }
   },
@@ -70,7 +75,7 @@
   "entity": {
     "sensor": {
       "status": {
-        "name": "Estado del temporizador",
+        "name": "{timer_name} Estado del temporizador",
         "state": {
           "idle": "Inactivo",
           "active": "Activo",
@@ -79,13 +84,26 @@
         }
       }
     },
+    "number": {
+      "duration": {
+        "name": "{timer_name} Duración"
+      }
+    },
     "select": {
       "end_action": {
-        "name": "Acción final",
+        "name": "{timer_name} Acción",
         "state": {
           "turn_on": "Encender",
           "turn_off": "Apagar"
         }
+      }
+    },
+    "button": {
+      "start": {
+        "name": "{timer_name} Iniciar"
+      },
+      "cancel": {
+        "name": "{timer_name} Cancelar"
       }
     }
   },
@@ -107,6 +125,20 @@
     "cancel": {
       "name": "Cancelar temporizador",
       "description": "Cancela un temporizador activo sin cambiar la entidad objetivo."
+    },
+    "set_values": {
+      "name": "Cambiar valores del temporizador",
+      "description": "Actualiza de forma atómica la duración y/o la acción mientras el temporizador está inactivo.",
+      "fields": {
+        "duration_minutes": {
+          "name": "Duración",
+          "description": "Duración opcional en minutos enteros."
+        },
+        "end_action": {
+          "name": "Acción final",
+          "description": "Acción final opcional seleccionada."
+        }
+      }
     }
   }
 }

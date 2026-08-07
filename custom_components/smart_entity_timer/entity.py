@@ -13,19 +13,14 @@ class SmartEntityTimerEntity(Entity):
     """Base class connected directly to one timer runtime."""
 
     _attr_should_poll = False
+    _attr_has_entity_name = True
 
-    def __init__(
-        self,
-        runtime: SmartEntityTimerRuntime,
-        key: str,
-        spanish_label: str,
-        english_label: str,
-    ) -> None:
+    def __init__(self, runtime: SmartEntityTimerRuntime, key: str) -> None:
         self.runtime = runtime
         self._attr_unique_id = f"{runtime.entry.entry_id}_{key}"
-        language = runtime.hass.config.language.lower()
-        label = spanish_label if language.startswith("es") else english_label
-        self._attr_name = f"{runtime.entry.title} {label}"
+        # Keep the configured helper title in the translated entity name while
+        # following Home Assistant's modern has_entity_name convention.
+        self._attr_translation_placeholders = {"timer_name": runtime.entry.title}
         self._remove_runtime_listener: Callable[[], None] | None = None
 
     async def async_added_to_hass(self) -> None:

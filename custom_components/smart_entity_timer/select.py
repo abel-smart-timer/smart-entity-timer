@@ -29,7 +29,7 @@ class SmartEntityTimerActionSelect(SmartEntityTimerEntity, SelectEntity):
     _attr_translation_key = "end_action"
 
     def __init__(self, runtime: SmartEntityTimerRuntime) -> None:
-        super().__init__(runtime, "end_action", "Acción", "Action")
+        super().__init__(runtime, "end_action")
 
     @property
     def current_option(self) -> str:

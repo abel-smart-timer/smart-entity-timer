@@ -2,124 +2,130 @@
 
 Persistent turn-on/turn-off timers for Home Assistant entities.
 
-**Version:** 0.1.2  
-**Minimum Home Assistant version:** 2026.7.0
+**Version:** 0.1.3  
+**Minimum Home Assistant version:** 2026.7.0  
+**Card API:** 2
 
-This repository contains the backend integration. The visual Lovelace card will be developed after functional testing of this release.
+This repository contains the backend integration used by the companion [Smart Entity Timer Card](https://github.com/abel-smart-timer/smart-entity-timer-card).
 
-## What version 0.1.2 does
+## Features
 
-Each configuration entry controls one entity and creates:
+Each configured timer controls one Home Assistant entity and creates five native entities:
 
-- one status sensor;
-- one duration number in whole minutes;
-- one final-action selector (`turn_on` / `turn_off`);
-- one start button;
-- one cancel button.
+- timer status sensor;
+- duration number in whole minutes;
+- final-action selector (`turn_on` / `turn_off`);
+- start button;
+- cancel button.
 
-The timer runs inside Home Assistant, so the dashboard or mobile application does not need to remain open.
+The timer runs inside Home Assistant, so no dashboard or browser must remain open.
 
-### Required behavior included
+- Arbitrary whole-minute durations.
+- Turn-on or turn-off final action.
+- Manual cancellation.
+- Automatic cancellation when the target reaches the requested state early.
+- Final race-safe state check before execution.
+- Persistent restart restoration.
+- Expired OFF timers execute after startup by default.
+- Expired ON timers are skipped after startup by default for safety.
+- Optional notification targets.
+- Multiple independent timers.
+- Card API v2 with backend-owned values and constraints.
 
-- The target can be turned **on or off**, selected before starting.
-- Any whole-minute duration can be entered. The future card will add **−30 / +30 minute** shortcuts without limiting arbitrary input.
-- If an OFF timer is active and the entity is turned off early, the timer cancels automatically.
-- If an ON timer is active and the entity is turned on early, the timer cancels automatically.
-- The early state change can come from the physical control, Home Assistant, the manufacturer's application, an automation, or another integration.
-- The backend rechecks the state immediately before running the final action to avoid race conditions.
-- A timer cannot start if the entity is unavailable or already in the requested final state.
-- Active timers are restored after a Home Assistant restart.
-- By default, an expired OFF timer is executed after startup, while an expired ON timer is skipped for safety.
-- Notifications can target one or more Home Assistant notify entities, devices, or areas containing notify entities.
+## Supported domains
 
-## Supported entity domains in 0.1.2
-
-- `switch`
-- `light`
-- `fan`
-- `climate`
-- `media_player`
-- `humidifier`
-- `input_boolean`
-- `remote`
-- `water_heater`
-
-Covers, locks, sirens, alarms, valves, and other domains are intentionally excluded until their state and safety semantics are designed and tested separately.
+`switch`, `light`, `fan`, `climate`, `media_player`, `humidifier`, `input_boolean`, `remote`, and `water_heater`.
 
 ## Manual installation
 
 1. Create a Home Assistant backup.
-2. Extract the installation ZIP into the Home Assistant `/config` directory.
-3. Confirm that this path exists:
+2. Copy `custom_components/smart_entity_timer` to `/config/custom_components/smart_entity_timer`.
+3. Restart Home Assistant.
+4. Open **Settings → Devices & services → Helpers**.
+5. Select **Create helper → Smart Entity Timer**.
 
-   ```text
-   /config/custom_components/smart_entity_timer/manifest.json
-   ```
+Existing 0.1.2 helpers are migrated automatically when 0.1.3 loads.
 
-4. Restart Home Assistant.
-5. Open **Settings → Devices & services → Helpers**.
-6. Select **Create helper** and choose **Smart Entity Timer**.
-7. Create one timer for each entity that needs this function.
+## Configuration vs options
 
-The integration does not require YAML helpers.
+The controlled target entity is structural configuration. To change it, use **Reconfigure** for the helper/config entry.
 
-## Entities created per timer
+Timer preferences remain in **Options**, including default action, default duration, maximum duration, notification targets, restart policies, and confirmation timeout.
 
-Assuming the entry is named `Temporizador A/C Cocina`, Home Assistant creates entities similar to:
+This separation follows current Home Assistant config-flow conventions.
 
-```text
-sensor.temporizador_a_c_cocina_estado
-number.temporizador_a_c_cocina_duracion
-select.temporizador_a_c_cocina_accion
-button.temporizador_a_c_cocina_iniciar
-button.temporizador_a_c_cocina_cancelar
-```
+## Card API v2
 
-Actual entity IDs are assigned by Home Assistant and may differ.
-
-The entity named **Estado del temporizador** reports the timer lifecycle (`idle`, `active`, `executing`, or `error`); it is not a duplicate of the controlled light or switch. Its attributes publish the controlled entity state and stable data for the future card:
+The status sensor is the source of truth for the dashboard card. It publishes data similar to:
 
 ```yaml
 state: active
 attributes:
-  target_entity: climate.ac_cocina
-  target_entity_name: A/C Cocina
-  target_entity_state: cool
+  target_entity: light.luz_del_bano
+  target_entity_name: Luz del baño
+  target_entity_state: "on"
   target_state_reached: false
   end_action: turn_off
   duration_minutes: 90
   duration_seconds: 5400
-  started_at: "2026-08-05T04:00:00+00:00"
-  finishes_at: "2026-08-05T05:30:00+00:00"
+  started_at: "2026-08-07T01:00:00+00:00"
+  finishes_at: "2026-08-07T02:30:00+00:00"
   can_start: false
   can_cancel: true
-  backend_version: "0.1.2"
-  card_api_version: 1
+  backend_version: "0.1.3"
+  card_api_version: 2
+  capabilities:
+    - turn_on
+    - turn_off
+    - set_duration
+    - set_action
+    - start
+    - cancel
+  constraints:
+    min_seconds: 60
+    max_seconds: 86400
+    step_seconds: 60
+  companion_entities:
+    duration: number.luz_del_bano_duracion
+    action: select.luz_del_bano_accion
+    start: button.luz_del_bano_iniciar
+    cancel: button.luz_del_bano_cancelar
 ```
 
-The future card will calculate the countdown and progress bar locally from `started_at`, `finishes_at`, and `duration_seconds`, avoiding a Home Assistant state update every second.
+The companion entity IDs are published for interoperability, but Smart Entity Timer Card 0.1.1 no longer needs to query the Home Assistant entity registry to discover them.
 
 ## Actions
 
-The integration registers entity actions against its status sensor.
-
-### Start with the selected duration and action
+### Set duration and/or action while idle
 
 ```yaml
-action: smart_entity_timer.start
+action: smart_entity_timer.set_values
 target:
-  entity_id: sensor.temporizador_a_c_cocina_estado
-```
-
-### Start with optional overrides
-
-```yaml
-action: smart_entity_timer.start
-target:
-  entity_id: sensor.temporizador_a_c_cocina_estado
+  entity_id: sensor.luz_del_bano_estado
 data:
   duration_minutes: 75
   end_action: turn_off
+```
+
+Both fields are optional individually; at least one must be supplied.
+
+### Start
+
+```yaml
+action: smart_entity_timer.start
+target:
+  entity_id: sensor.luz_del_bano_estado
+```
+
+Optional per-run overrides are still supported:
+
+```yaml
+action: smart_entity_timer.start
+target:
+  entity_id: sensor.luz_del_bano_estado
+data:
+  duration_minutes: 45
+  end_action: turn_on
 ```
 
 ### Cancel
@@ -127,53 +133,22 @@ data:
 ```yaml
 action: smart_entity_timer.cancel
 target:
-  entity_id: sensor.temporizador_a_c_cocina_estado
+  entity_id: sensor.luz_del_bano_estado
 ```
 
-Cancelling does not execute the final action.
+## Entity naming
 
-## Notification behavior
+Version 0.1.3 adopts Home Assistant's modern `has_entity_name = True` model and translated entity names for all five entities. Existing unique IDs are unchanged, so an upgrade does not intentionally replace the existing entities.
 
-Default behavior:
+## Validation
 
-| Result | Notification |
-|---|---:|
-| Timer finishes and action is confirmed | Yes |
-| Action fails or target is unavailable | Yes |
-| Expired ON action is skipped after restart | Yes |
-| Manual cancellation | No |
-| Automatic cancellation because target state was reached early | No |
+The repository includes:
 
-Manual and automatic cancellation notifications can be enabled in the integration options.
-
-## Restart behavior
-
-The runtime stores absolute UTC start and finish timestamps.
-
-- If Home Assistant restarts before expiry, the remaining time is reconstructed.
-- If an OFF timer expired while Home Assistant was offline, the default is to execute it at startup.
-- If an ON timer expired while Home Assistant was offline, the default is to skip it and notify, preventing unexpected activation after a long outage.
-- Both policies are configurable per timer.
-
-## Development status
-
-Version 0.1.2 is the current backend test release. It retains the one-second in-memory watchdog and fixes startup restoration: persisted timers are resumed only after Home Assistant has fully started, placeholder restored states are ignored, and expired actions wait for the real target entity before execution. It still requires the complete functional Home Assistant test plan before the card is developed.
-
-See:
-
-- [`docs/TEST_PLAN.md`](docs/TEST_PLAN.md)
-- [`docs/GITHUB_SETUP.md`](docs/GITHUB_SETUP.md)
-- [`CHANGELOG.md`](CHANGELOG.md)
-
-## Repository
-
-Official source repository:
-
-```text
-https://github.com/abel-smart-timer/smart-entity-timer
-```
-
-This package is already prepared for the `abel-smart-timer` GitHub organization. The `codeowners` list is intentionally empty in version 0.1.2 until a personal GitHub username or organization team is selected as the maintainer.
+- Python compilation checks;
+- dependency-light regression tests for target-state semantics and the card API contract;
+- Hassfest;
+- HACS validation;
+- the manual functional test plan in [`docs/TEST_PLAN.md`](docs/TEST_PLAN.md).
 
 ## License
 

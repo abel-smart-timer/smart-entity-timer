@@ -20,6 +20,7 @@ from homeassistant.helpers.event import (
 )
 from homeassistant.helpers.start import async_at_started
 from homeassistant.helpers.storage import Store
+from homeassistant.helpers import entity_registry as er
 
 from .const import (
     ACTION_TURN_OFF,
@@ -273,6 +274,11 @@ class SmartEntityTimerRuntime:
             self._listeners.discard(listener)
 
         return remove_listener
+
+    @callback
+    def async_publish_state(self) -> None:
+        """Publish the current runtime state after platform/registry changes."""
+        self._async_notify_listeners()
 
     @callback
     def _async_notify_listeners(self) -> None:
@@ -668,48 +674,62 @@ class SmartEntityTimerRuntime:
         if notify:
             await self._async_send_notification(title, message)
 
-    async def async_set_duration(self, minutes: int) -> None:
-        """Set the idle duration in whole minutes."""
-        value = int(minutes)
+    async def async_set_values(
+        self,
+        *,
+        duration_minutes: int | None = None,
+        end_action: str | None = None,
+    ) -> None:
+        """Atomically update idle timer values for cards and native controls."""
+        if duration_minutes is None and end_action is None:
+            raise HomeAssistantError(
+                self._localize(
+                    "Debes indicar una duración, una acción o ambas.",
+                    "Provide a duration, an action, or both.",
+                )
+            )
+
         async with self._lock:
             if self.is_busy:
                 raise HomeAssistantError(
                     self._localize(
-                        "No se puede cambiar la duración mientras el temporizador está activo.",
-                        "Duration cannot be changed while the timer is active.",
+                        "No se pueden cambiar los valores mientras el temporizador está activo.",
+                        "Timer values cannot be changed while the timer is active.",
                     )
                 )
-            if not 1 <= value <= self.max_duration_minutes:
-                raise HomeAssistantError(
-                    self._localize(
-                        f"La duración debe estar entre 1 y {self.max_duration_minutes} minutos.",
-                        f"Duration must be between 1 and {self.max_duration_minutes} minutes.",
+
+            if duration_minutes is not None:
+                value = int(duration_minutes)
+                if not 1 <= value <= self.max_duration_minutes:
+                    raise HomeAssistantError(
+                        self._localize(
+                            f"La duración debe estar entre 1 y {self.max_duration_minutes} minutos.",
+                            f"Duration must be between 1 and {self.max_duration_minutes} minutes.",
+                        )
                     )
-                )
-            self.selected_duration_minutes = value
+                self.selected_duration_minutes = value
+
+            if end_action is not None:
+                if end_action not in ACTIONS:
+                    raise HomeAssistantError(
+                        self._localize(
+                            "La acción final no es válida.",
+                            "The final action is invalid.",
+                        )
+                    )
+                self.selected_action = end_action
+
             await self._async_save_locked()
+
         self._async_notify_listeners()
+
+    async def async_set_duration(self, minutes: int) -> None:
+        """Set the idle duration in whole minutes."""
+        await self.async_set_values(duration_minutes=minutes)
 
     async def async_select_action(self, action: str) -> None:
         """Set turn_on or turn_off while idle."""
-        if action not in ACTIONS:
-            raise HomeAssistantError(
-                self._localize(
-                    "La acción final no es válida.",
-                    "The final action is invalid.",
-                )
-            )
-        async with self._lock:
-            if self.is_busy:
-                raise HomeAssistantError(
-                    self._localize(
-                        "No se puede cambiar la acción mientras el temporizador está activo.",
-                        "The action cannot be changed while the timer is active.",
-                    )
-                )
-            self.selected_action = action
-            await self._async_save_locked()
-        self._async_notify_listeners()
+        await self.async_set_values(end_action=action)
 
     async def async_finish(self, *, restored: bool = False) -> None:
         """Execute the requested final action after a final race-safe check."""
@@ -1001,8 +1021,27 @@ class SmartEntityTimerRuntime:
         self.last_message = message
         self.last_finished_at = datetime.now(UTC)
 
+    def _companion_entities(self) -> dict[str, str | None]:
+        """Return native companion entity IDs by stable unique ID."""
+        registry = er.async_get(self.hass)
+        prefix = self.entry.entry_id
+        return {
+            "duration": registry.async_get_entity_id(
+                "number", DOMAIN, f"{prefix}_duration"
+            ),
+            "action": registry.async_get_entity_id(
+                "select", DOMAIN, f"{prefix}_end_action"
+            ),
+            "start": registry.async_get_entity_id(
+                "button", DOMAIN, f"{prefix}_start"
+            ),
+            "cancel": registry.async_get_entity_id(
+                "button", DOMAIN, f"{prefix}_cancel"
+            ),
+        }
+
     def state_attributes(self) -> dict[str, Any]:
-        """Return stable attributes for native UI and the future card API."""
+        """Return stable attributes for native UI and card API v2."""
         state = self.hass.states.get(self.target_entity_id)
         return {
             "target_entity": self.target_entity_id,
@@ -1027,6 +1066,20 @@ class SmartEntityTimerRuntime:
             "last_finished_at": self._iso(self.last_finished_at),
             "backend_version": VERSION,
             "card_api_version": CARD_API_VERSION,
+            "capabilities": [
+                ACTION_TURN_ON,
+                ACTION_TURN_OFF,
+                "set_duration",
+                "set_action",
+                "start",
+                "cancel",
+            ],
+            "constraints": {
+                "min_seconds": 60,
+                "max_seconds": self.max_duration_minutes * 60,
+                "step_seconds": 60,
+            },
+            "companion_entities": self._companion_entities(),
             "watchdog_active": self._watchdog_unsub is not None,
             "restore_pending": self._restore_pending,
             "restore_target_wait_seconds": RESTORE_TARGET_WAIT_SECONDS,
@@ -1051,6 +1104,19 @@ class SmartEntityTimerRuntime:
             "last_message": self.last_message,
             "backend_version": VERSION,
             "card_api_version": CARD_API_VERSION,
+            "capabilities": [
+                ACTION_TURN_ON,
+                ACTION_TURN_OFF,
+                "set_duration",
+                "set_action",
+                "start",
+                "cancel",
+            ],
+            "constraints": {
+                "min_seconds": 60,
+                "max_seconds": self.max_duration_minutes * 60,
+                "step_seconds": 60,
+            },
             "watchdog_active": self._watchdog_unsub is not None,
             "restore_pending": self._restore_pending,
             "restore_target_wait_seconds": RESTORE_TARGET_WAIT_SECONDS,

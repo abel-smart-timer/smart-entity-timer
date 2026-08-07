@@ -1,4 +1,4 @@
-# Functional test plan — Smart Entity Timer 0.1.2
+# Functional test plan — Smart Entity Timer 0.1.3
 
 Run these tests on a Home Assistant test instance before using the integration on a customer installation.
 
@@ -247,11 +247,11 @@ Open integration options during an active timer and attempt to save.
 
 Expected: save is rejected until the timer finishes or is cancelled.
 
-### T26 — Change target while idle
+### T26 — Reconfigure target while idle
 
-Change the target entity in options.
+Use the config entry Reconfigure flow to change the target entity.
 
-Expected: entry reloads, entities remain associated with the timer entry, and the new target is monitored.
+Expected: entry reloads, existing unique IDs remain associated with the timer entry, and the new target is monitored.
 
 ### T27 — Download diagnostics
 
@@ -273,3 +273,16 @@ Proceed to the first card test version only after:
 - T07–T22 pass on at least one real `climate` entity;
 - notifications pass on at least one Companion App device;
 - no unexplained errors remain in the Home Assistant log.
+
+
+### T29 — Card API v2 synchronization
+
+While idle, call `smart_entity_timer.set_values` to change duration and action.
+
+Expected:
+
+- status sensor attributes update immediately;
+- native number/select entities show the same values;
+- `card_api_version` is `2`;
+- `constraints` and `capabilities` are present;
+- `companion_entities` resolves the four native companion entities.

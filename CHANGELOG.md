@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.3 — 2026-08-06
+
+Architecture and card-contract stabilization release.
+
+- Added Card API v2 and made the status sensor the authoritative card state source.
+- Added atomic `smart_entity_timer.set_values` for duration and/or action changes.
+- Added `capabilities`, `constraints`, and `companion_entities` status attributes.
+- Adopted `has_entity_name = True` and translated names for all five entities.
+- Moved target-entity changes to a dedicated Reconfigure flow.
+- Added automatic migration of 0.1.2 entries that stored an overridden target in Options.
+- Kept native number/select/button entities for normal Home Assistant use without making the card depend on registry discovery.
+- Added dependency-light automated regression tests and a Python CI job.
+- Updated documentation for the existing companion card.
+
 ## 0.1.2 — 2026-08-05
 
 - Fixed expired OFF timers after a Home Assistant restart.

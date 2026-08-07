@@ -29,9 +29,10 @@ class SmartEntityTimerDurationNumber(SmartEntityTimerEntity, NumberEntity):
     _attr_native_step = 1
     _attr_native_unit_of_measurement = UnitOfTime.MINUTES
     _attr_mode = NumberMode.BOX
+    _attr_translation_key = "duration"
 
     def __init__(self, runtime: SmartEntityTimerRuntime) -> None:
-        super().__init__(runtime, "duration", "Duración", "Duration")
+        super().__init__(runtime, "duration")
 
     @property
     def native_value(self) -> float:
