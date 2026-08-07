@@ -36,6 +36,18 @@ class RepositoryContractTests(unittest.TestCase):
         self.assertIn("async_service_set_values", (COMPONENT / "sensor.py").read_text())
         self.assertIn("SERVICE_SET_VALUES", init)
 
+    def test_notification_templates_and_lifecycle_events(self):
+        runtime = (COMPONENT / "runtime.py").read_text()
+        config_flow = (COMPONENT / "config_flow.py").read_text()
+        const = (COMPONENT / "const.py").read_text()
+        diagnostics = (COMPONENT / "diagnostics.py").read_text()
+        self.assertIn("NOTIFICATION_TEMPLATE_KEYS", runtime)
+        self.assertIn("validate_notification_template", config_flow)
+        for event_name in ["EVENT_STARTED", "EVENT_COMPLETED", "EVENT_CANCELLED", "EVENT_SKIPPED", "EVENT_ERROR"]:
+            self.assertIn(event_name, const)
+        self.assertIn("_fire_result_event", runtime)
+        self.assertIn("custom_notification_templates_configured", diagnostics)
+
 
 if __name__ == "__main__":
     unittest.main()

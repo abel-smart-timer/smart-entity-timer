@@ -21,6 +21,7 @@ from homeassistant.helpers.event import (
 from homeassistant.helpers.start import async_at_started
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers import entity_registry as er
+from homeassistant.util import dt as dt_util
 
 from .const import (
     ACTION_TURN_OFF,
@@ -34,6 +35,18 @@ from .const import (
     CONF_EXECUTE_EXPIRED_TURN_ON,
     CONF_MAX_DURATION_MINUTES,
     CONF_NOTIFICATION_TARGET,
+    EVENT_CANCELLED,
+    EVENT_COMPLETED,
+    EVENT_ERROR,
+    EVENT_SCHEMA_VERSION,
+    EVENT_SKIPPED,
+    EVENT_STARTED,
+    NOTIFICATION_KIND_AUTO_CANCEL,
+    NOTIFICATION_KIND_COMPLETED,
+    NOTIFICATION_KIND_ERROR,
+    NOTIFICATION_KIND_MANUAL_CANCEL,
+    NOTIFICATION_KIND_SKIPPED,
+    NOTIFICATION_TEMPLATE_KEYS,
     CONF_NOTIFY_AUTO_CANCEL,
     CONF_NOTIFY_MANUAL_CANCEL,
     DEFAULT_ACTION,
@@ -69,6 +82,7 @@ from .const import (
     RESTORE_TARGET_WAIT_SECONDS,
 )
 from .logic import format_duration, is_state_usable, target_state_reached
+from .notifications import render_notification_template
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -347,6 +361,7 @@ class SmartEntityTimerRuntime:
         """Restore scheduling or process an expired timer after startup."""
         notification: tuple[str, str] | None = None
         execute_expired = False
+        emit_result_event = False
         current_task = asyncio.current_task()
 
         try:
@@ -357,27 +372,45 @@ class SmartEntityTimerRuntime:
                 finishes_at = self.finishes_at
                 state = self.hass.states.get(self.target_entity_id)
                 if finishes_at is None:
+                    message = self._localize(
+                        "No se pudo restaurar el temporizador porque no tenía una fecha final.",
+                        "The timer could not be restored because it had no finish time.",
+                    )
                     self._set_idle_locked(
                         RESULT_ERROR,
                         REASON_ACTION_FAILED,
-                        self._localize(
-                            "No se pudo restaurar el temporizador porque no tenía una fecha final.",
-                            "The timer could not be restored because it had no finish time.",
-                        ),
+                        message,
                         as_error=True,
                     )
                     await self._async_save_locked()
+                    emit_result_event = True
+                    notification = (
+                        self._localize("Error en el temporizador", "Timer error"),
+                        message,
+                    )
                 elif is_state_usable(state) and target_state_reached(
                     self.target_entity_id,
                     state,
                     self.selected_action,
                 ):
+                    message = self._already_target_message()
                     self._set_idle_locked(
                         RESULT_AUTO_CANCELLED,
                         REASON_ALREADY_TARGET,
-                        self._already_target_message(),
+                        message,
                     )
                     await self._async_save_locked()
+                    emit_result_event = True
+                    if bool(
+                        self._effective.get(
+                            CONF_NOTIFY_AUTO_CANCEL,
+                            DEFAULT_NOTIFY_AUTO_CANCEL,
+                        )
+                    ):
+                        notification = (
+                            self._localize("Temporizador cancelado", "Timer cancelled"),
+                            message,
+                        )
                 elif finishes_at > datetime.now(UTC):
                     # Home Assistant is now running; resume the original absolute deadline.
                     self._restore_pending = False
@@ -416,6 +449,7 @@ class SmartEntityTimerRuntime:
                             message,
                         )
                         await self._async_save_locked()
+                        emit_result_event = True
                         notification = (
                             self._localize("Temporizador omitido", "Timer skipped"),
                             message,
@@ -424,8 +458,10 @@ class SmartEntityTimerRuntime:
             self._async_notify_listeners()
 
             if not execute_expired:
+                if emit_result_event:
+                    self._fire_result_event(restored=True)
                 if notification:
-                    await self._async_send_notification(*notification)
+                    await self._async_send_notification(*notification, restored=True)
                 return
 
             state = await self._async_wait_for_real_target_state(
@@ -450,6 +486,7 @@ class SmartEntityTimerRuntime:
                         as_error=True,
                     )
                     await self._async_save_locked()
+                    emit_result_event = True
                     notification = (
                         self._localize("Error en el temporizador", "Timer error"),
                         message,
@@ -467,8 +504,20 @@ class SmartEntityTimerRuntime:
                         message,
                     )
                     await self._async_save_locked()
+                    emit_result_event = True
                     execute_expired = False
-                    notification = None
+                    if bool(
+                        self._effective.get(
+                            CONF_NOTIFY_AUTO_CANCEL,
+                            DEFAULT_NOTIFY_AUTO_CANCEL,
+                        )
+                    ):
+                        notification = (
+                            self._localize("Temporizador cancelado", "Timer cancelled"),
+                            message,
+                        )
+                    else:
+                        notification = None
                 else:
                     self._restore_pending = False
                     self._start_watchdog_locked()
@@ -478,8 +527,11 @@ class SmartEntityTimerRuntime:
 
             if execute_expired:
                 await self.async_finish(restored=True)
-            elif notification:
-                await self._async_send_notification(*notification)
+            else:
+                if emit_result_event:
+                    self._fire_result_event(restored=True)
+                if notification:
+                    await self._async_send_notification(*notification, restored=True)
         finally:
             if self._restore_task is current_task:
                 self._restore_task = None
@@ -567,6 +619,7 @@ class SmartEntityTimerRuntime:
             self._target_check_pending = False
 
         self._async_notify_listeners()
+        self._fire_result_event()
         if notify:
             await self._async_send_notification(title, message)
 
@@ -633,6 +686,12 @@ class SmartEntityTimerRuntime:
             await self._async_save_locked()
 
         self._async_notify_listeners()
+        self._fire_lifecycle_event(
+            EVENT_STARTED,
+            result="started",
+            reason=None,
+            restored=False,
+        )
 
     async def async_cancel(self) -> None:
         """Cancel an active timer without executing the final action."""
@@ -671,6 +730,7 @@ class SmartEntityTimerRuntime:
             )
 
         self._async_notify_listeners()
+        self._fire_result_event()
         if notify:
             await self._async_send_notification(title, message)
 
@@ -809,6 +869,16 @@ class SmartEntityTimerRuntime:
                         message,
                     )
                     await self._async_save_locked()
+                    if bool(
+                        self._effective.get(
+                            CONF_NOTIFY_AUTO_CANCEL,
+                            DEFAULT_NOTIFY_AUTO_CANCEL,
+                        )
+                    ):
+                        notification = (
+                            self._localize("Temporizador cancelado", "Timer cancelled"),
+                            message,
+                        )
                 else:
                     self.status = STATUS_EXECUTING
                     await self._async_save_locked()
@@ -889,8 +959,9 @@ class SmartEntityTimerRuntime:
                             )
 
         self._async_notify_listeners()
+        self._fire_result_event(restored=restored)
         if notification:
-            await self._async_send_notification(*notification)
+            await self._async_send_notification(*notification, restored=restored)
 
     async def _async_wait_for_target_state_locked(self) -> bool:
         loop = asyncio.get_running_loop()
@@ -945,26 +1016,166 @@ class SmartEntityTimerRuntime:
             self._watchdog_unsub()
             self._watchdog_unsub = None
 
-    async def _async_send_notification(self, title: str, message: str) -> None:
+    async def _async_send_notification(
+        self,
+        title: str,
+        message: str,
+        *,
+        restored: bool = False,
+    ) -> None:
+        """Deliver a default or user-customized lifecycle notification."""
         target = self.notification_target
         if not target:
             return
+
+        kind = self._notification_kind()
+        template_keys = NOTIFICATION_TEMPLATE_KEYS.get(kind)
+        rendered_title = title
+        rendered_message = message
+
+        if template_keys is not None:
+            title_key, message_key = template_keys
+            context = self._notification_context(
+                default_title=title,
+                default_message=message,
+                restored=restored,
+            )
+            try:
+                rendered_title = render_notification_template(
+                    str(self._effective.get(title_key, "") or ""),
+                    title,
+                    context,
+                )
+                rendered_message = render_notification_template(
+                    str(self._effective.get(message_key, "") or ""),
+                    message,
+                    context,
+                )
+            except (KeyError, ValueError):
+                _LOGGER.warning(
+                    "Invalid notification template for %s; using built-in text",
+                    self.entry.entry_id,
+                )
+                rendered_title = title
+                rendered_message = message
+
         try:
             await self.hass.services.async_call(
                 "notify",
                 "send_message",
                 {
-                    "title": title,
-                    "message": message,
+                    "title": rendered_title,
+                    "message": rendered_message,
                 },
                 target=target,
                 blocking=True,
             )
         except Exception:
             _LOGGER.exception(
-                "Timer action completed, but notification delivery failed for %s",
+                "Timer result was recorded, but notification delivery failed for %s",
                 self.entry.entry_id,
             )
+
+    def _notification_kind(self) -> str:
+        """Map the current timer result to one customizable notification kind."""
+        if self.last_result == RESULT_COMPLETED:
+            return NOTIFICATION_KIND_COMPLETED
+        if self.last_result == RESULT_SKIPPED:
+            return NOTIFICATION_KIND_SKIPPED
+        if self.last_result == RESULT_CANCELLED:
+            return NOTIFICATION_KIND_MANUAL_CANCEL
+        if self.last_result == RESULT_AUTO_CANCELLED:
+            return NOTIFICATION_KIND_AUTO_CANCEL
+        return NOTIFICATION_KIND_ERROR
+
+    def _notification_context(
+        self,
+        *,
+        default_title: str,
+        default_message: str,
+        restored: bool,
+    ) -> dict[str, object]:
+        """Build safe fields available to custom notification templates."""
+        finished_at = self.last_finished_at or datetime.now(UTC)
+        local_finished_at = dt_util.as_local(finished_at).strftime("%Y-%m-%d %H:%M:%S")
+        return {
+            "timer_name": self.entry.title,
+            "target_name": self._target_name(),
+            "target_entity": self.target_entity_id,
+            "action": self._action_infinitive(),
+            "action_id": self.selected_action,
+            "action_past": (
+                self._action_participle_es()
+                if self.hass.config.language.lower().startswith("es")
+                else self._action_participle_en()
+            ),
+            "duration": format_duration(
+                self.selected_duration_minutes,
+                spanish=self.hass.config.language.lower().startswith("es"),
+            ),
+            "duration_minutes": self.selected_duration_minutes,
+            "result": self.last_result or "",
+            "reason": self.last_reason or "",
+            "finished_at": local_finished_at,
+            "restored": self._localize(
+                "sí" if restored else "no",
+                "yes" if restored else "no",
+            ),
+            "default_title": default_title,
+            "default_message": default_message,
+        }
+
+    @callback
+    def _fire_result_event(self, *, restored: bool = False) -> None:
+        """Emit one public lifecycle event for the most recent terminal result."""
+        if self.last_result in (RESULT_CANCELLED, RESULT_AUTO_CANCELLED):
+            event_type = EVENT_CANCELLED
+        elif self.last_result == RESULT_COMPLETED:
+            event_type = EVENT_COMPLETED
+        elif self.last_result == RESULT_SKIPPED:
+            event_type = EVENT_SKIPPED
+        elif self.last_result == RESULT_ERROR:
+            event_type = EVENT_ERROR
+        else:
+            return
+        self._fire_lifecycle_event(
+            event_type,
+            result=self.last_result,
+            reason=self.last_reason,
+            restored=restored,
+        )
+
+    @callback
+    def _fire_lifecycle_event(
+        self,
+        event_type: str,
+        *,
+        result: str,
+        reason: str | None,
+        restored: bool,
+    ) -> None:
+        """Fire a stable, automation-friendly event without notification targets."""
+        state = self.hass.states.get(self.target_entity_id)
+        self.hass.bus.async_fire(
+            event_type,
+            {
+                "event_schema_version": EVENT_SCHEMA_VERSION,
+                "entry_id": self.entry.entry_id,
+                "timer_name": self.entry.title,
+                "target_entity": self.target_entity_id,
+                "target_name": self._target_name(),
+                "target_state": state.state if state else None,
+                "action": self.selected_action,
+                "duration_minutes": self.selected_duration_minutes,
+                "result": result,
+                "reason": reason,
+                "restored": restored,
+                "started_at": self._iso(self.started_at),
+                "finishes_at": self._iso(self.finishes_at),
+                "finished_at": self._iso(self.last_finished_at),
+                "event_time": self._iso(datetime.now(UTC)),
+            },
+        )
 
     def _restore_fields(self, stored: dict[str, Any]) -> None:
         self.status = str(stored.get("status", STATUS_IDLE))

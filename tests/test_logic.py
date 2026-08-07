@@ -96,7 +96,15 @@ class ApiContractTests(unittest.TestCase):
         self.assertEqual(CONST.SERVICE_SET_VALUES, "set_values")
 
     def test_version(self):
-        self.assertEqual(CONST.VERSION, "0.1.3")
+        self.assertEqual(CONST.VERSION, "0.2.0")
+
+    def test_notification_and_event_contract(self):
+        self.assertEqual(len(CONST.NOTIFICATION_TEMPLATE_KEYS), 5)
+        self.assertEqual(CONST.EVENT_STARTED, "smart_entity_timer.started")
+        self.assertEqual(CONST.EVENT_COMPLETED, "smart_entity_timer.completed")
+        self.assertEqual(CONST.EVENT_CANCELLED, "smart_entity_timer.cancelled")
+        self.assertEqual(CONST.EVENT_SKIPPED, "smart_entity_timer.skipped")
+        self.assertEqual(CONST.EVENT_ERROR, "smart_entity_timer.error")
 
 
 if __name__ == "__main__":

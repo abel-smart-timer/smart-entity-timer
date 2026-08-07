@@ -27,7 +27,7 @@
     "error": {
       "name_required": "Introduce un nombre.",
       "timer_active": "Cancela o espera a que termine el temporizador activo antes de reconfigurarlo.",
-      "unsupported_domain": "Este dominio de entidad no es compatible con la versión 0.1.3.",
+      "unsupported_domain": "El dominio de esta entidad no es compatible.",
       "entity_not_found": "La entidad no existe actualmente en Home Assistant.",
       "already_configured": "Esta entidad ya está controlada por otro Smart Entity Timer."
     },
@@ -40,7 +40,7 @@
     "step": {
       "init": {
         "title": "Opciones del temporizador",
-        "description": "Estas opciones cambian preferencias del temporizador. Para cambiar la entidad objetivo usa Reconfigurar.",
+        "description": "Notificaciones personalizadas: deja cualquier campo vacío para conservar el texto integrado. Variables disponibles: {timer_name}, {target_name}, {target_entity}, {action}, {action_id}, {action_past}, {duration}, {duration_minutes}, {result}, {reason}, {finished_at}, {restored}, {default_title}, {default_message}. Ejemplo de título: Temporizador de {target_name}. Ejemplo de mensaje: {target_name} fue {action_past} después de {duration}.",
         "data": {
           "default_action": "Acción final predeterminada",
           "default_duration_minutes": "Duración predeterminada",
@@ -50,18 +50,39 @@
           "notify_auto_cancel": "Notificar cancelaciones automáticas",
           "execute_expired_turn_off": "Ejecutar apagado vencido después de reiniciar",
           "execute_expired_turn_on": "Ejecutar encendido vencido después de reiniciar",
-          "confirmation_timeout": "Tiempo para confirmar el estado"
+          "confirmation_timeout": "Tiempo para confirmar el estado",
+          "notification_completed_title": "Título personalizado al finalizar",
+          "notification_completed_message": "Mensaje personalizado al finalizar",
+          "notification_error_title": "Título personalizado de error",
+          "notification_error_message": "Mensaje personalizado de error",
+          "notification_skipped_title": "Título personalizado al omitir",
+          "notification_skipped_message": "Mensaje personalizado al omitir",
+          "notification_manual_cancel_title": "Título de cancelación manual",
+          "notification_manual_cancel_message": "Mensaje de cancelación manual",
+          "notification_auto_cancel_title": "Título de cancelación automática",
+          "notification_auto_cancel_message": "Mensaje de cancelación automática"
         },
         "data_description": {
           "execute_expired_turn_off": "Recomendado: activado. Si Home Assistant estaba apagado cuando venció un temporizador OFF, apaga la entidad al iniciar.",
           "execute_expired_turn_on": "Recomendado: desactivado. Evita encendidos inesperados después de una interrupción prolongada.",
-          "confirmation_timeout": "Tiempo máximo para que la entidad confirme el estado solicitado."
+          "confirmation_timeout": "Tiempo máximo para que la entidad confirme el estado solicitado.",
+          "notification_completed_title": "Opcional. Ejemplo: Temporizador de {target_name}",
+          "notification_completed_message": "Opcional. Ejemplo: {target_name} fue {action_past} después de {duration}.",
+          "notification_error_title": "Opcional. Ejemplo: Error del temporizador — {target_name}",
+          "notification_error_message": "Opcional. Ejemplo: {target_name} no pudo completar {action}. Motivo: {reason}.",
+          "notification_skipped_title": "Opcional. Ejemplo: Acción del temporizador omitida",
+          "notification_skipped_message": "Opcional. Ejemplo: Se omitió {action} para {target_name}. Motivo: {reason}.",
+          "notification_manual_cancel_title": "Opcional. Ejemplo: Temporizador cancelado",
+          "notification_manual_cancel_message": "Opcional. Ejemplo: {timer_name} fue cancelado manualmente.",
+          "notification_auto_cancel_title": "Opcional. Ejemplo: Temporizador cancelado automáticamente",
+          "notification_auto_cancel_message": "Opcional. Ejemplo: {target_name} alcanzó el estado solicitado antes de terminar el temporizador."
         }
       }
     },
     "error": {
       "timer_active": "Cancela o espera a que termine el temporizador activo antes de cambiar las opciones.",
-      "duration_above_maximum": "La duración predeterminada no puede superar la duración máxima."
+      "duration_above_maximum": "La duración predeterminada no puede superar la duración máxima.",
+      "invalid_notification_template": "La plantilla de notificación contiene una variable no admitida o llaves no válidas."
     }
   },
   "selector": {

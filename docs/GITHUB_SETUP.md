@@ -6,45 +6,49 @@ Repositorio:
 https://github.com/abel-smart-timer/smart-entity-timer
 ```
 
-Versión estable actual:
+Versión estable publicada:
 
 ```text
 v0.1.3
 ```
 
-La integración ya tiene Release publicado y validaciones de GitHub Actions/HACS funcionando. Este documento reemplaza las instrucciones iniciales de creación del repositorio.
+Candidata de desarrollo actual:
 
-## Actualizar archivos desde el navegador
+```text
+0.2.0
+```
+
+La versión 0.1.3 debe permanecer como Release estable mientras 0.2.0 se prueba en HAOS real.
+
+## Probar 0.2.0 sin reemplazar todavía el Release estable
+
+1. Descarga el ZIP de instalación 0.2.0 generado para pruebas.
+2. Haz respaldo de Home Assistant.
+3. Reemplaza `/config/custom_components/smart_entity_timer/` con los archivos 0.2.0.
+4. Reinicia Home Assistant.
+5. Conserva los helpers existentes.
+6. Ejecuta T30–T36 de `docs/TEST_PLAN.md`.
+7. Si aparece un problema, vuelve a instalar el Release 0.1.3 desde HACS o restaura el respaldo.
+
+## Subir código 0.2.0 a GitHub
+
+No es necesario subirlo a `main` antes de terminar las pruebas locales. Cuando la candidata pase las pruebas:
 
 1. Abre `abel-smart-timer/smart-entity-timer`.
 2. Selecciona **Add file → Upload files**.
-3. Arrastra únicamente los archivos/carpetas que deseas reemplazar o agregar.
-4. Revisa la lista de cambios antes del commit.
-5. Escribe un mensaje de commit descriptivo.
-6. Guarda directamente en `main` cuando se trate de una actualización pequeña y revisada.
-7. Abre **Actions** y confirma que las validaciones terminen en verde.
+3. Arrastra el contenido del ZIP completo del repositorio 0.2.0.
+4. Usa un commit descriptivo, por ejemplo `Add customizable notifications and lifecycle events in 0.2.0`.
+5. Revisa **Actions** y confirma Python checks, Hassfest y HACS validation en verde.
+6. Repite una prueba rápida desde HAOS con esos mismos archivos.
+7. Solo entonces crea el Release `v0.2.0`.
 
-## Actualizaciones solo de documentación
+## No reutilizar tags
 
-Una corrección de README, INSTALL o archivos bajo `docs/` no requiere cambiar la versión del `manifest.json` si no cambia el código distribuido de la integración.
-
-El Release `v0.1.3` continúa representando exactamente el código que fue probado y publicado. Los cambios documentales posteriores permanecen en `main` hasta el siguiente Release.
-
-## Flujo para una nueva versión de código
-
-1. Actualiza el código y la versión del manifiesto.
-2. Actualiza `CHANGELOG.md` y documentación relevante.
-3. Sube los cambios a `main`.
-4. Espera a que GitHub Actions termine en verde.
-5. Prueba la versión en Home Assistant real.
-6. Crea un nuevo Release con un tag nuevo, por ejemplo `v0.1.4` o `v0.2.0`.
-7. No reutilices un tag existente para código diferente.
+El Release estable `v0.1.3` representa el código ya validado y no debe modificarse ni reemplazarse. Cada nueva versión usa un tag nuevo.
 
 ## HACS
 
-Smart Entity Timer se distribuye como integración HACS.
-
-La estructura principal debe conservarse:
+Smart Entity Timer se distribuye como integración HACS. La estructura debe conservarse:
 
 ```text
 custom_components/
@@ -54,30 +58,13 @@ custom_components/
     └── ...
 ```
 
-Después de cualquier cambio relevante revisa en GitHub Actions:
-
-- Python checks;
-- Hassfest;
-- HACS validation.
-
-## Repositorio de la tarjeta
-
-La tarjeta se mantiene separada en:
+## Tarjeta compatible
 
 ```text
-https://github.com/abel-smart-timer/smart-entity-timer-card
+Smart Entity Timer estable        0.1.3
+Smart Entity Timer candidata      0.2.0
+Smart Entity Timer Card           0.2.2
+Card API                           2
 ```
 
-Esto es intencional: HACS administra la integración y el plugin Dashboard como tipos de repositorio distintos.
-
-## Versiones compatibles actuales
-
-```text
-Smart Entity Timer       0.1.3
-Smart Entity Timer Card  0.2.2
-Card API                  2
-```
-
-## Próximas funciones
-
-Las ideas que todavía no forman parte de la versión estable deben documentarse en `docs/ROADMAP.md` y no presentarse en README como funciones existentes.
+0.2.0 no cambia Card API, por lo que la tarjeta 0.2.2 debe continuar funcionando sin modificaciones.

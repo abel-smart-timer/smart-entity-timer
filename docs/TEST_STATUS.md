@@ -36,3 +36,8 @@ The following behavior has been manually validated in Home Assistant OS:
 A clean HACS installation was also validated on Home Assistant OS running on a Raspberry Pi 5.
 
 This status complements, but does not replace, the repeatable test cases in `TEST_PLAN.md`.
+
+
+## 0.2.0 candidate status
+
+The stable 0.1.3 behavior above is the regression baseline. The 0.2.0 notification customization and lifecycle events have automated dependency-light tests but still require real HAOS validation using T30–T36 before release.

@@ -2,120 +2,117 @@
 
 Persistent turn-on/turn-off timers for Home Assistant entities.
 
-**Version:** 0.1.3  
+**Development candidate:** 0.2.0  
+**Current stable release:** 0.1.3  
 **Minimum Home Assistant version:** 2026.7.0  
-**Card API:** 2  
-**Recommended companion card:** [Smart Entity Timer Card 0.2.2 or newer](https://github.com/abel-smart-timer/smart-entity-timer-card)
+**Card API:** 2
 
-Smart Entity Timer runs the timer logic inside Home Assistant. No dashboard, browser, phone, or tablet needs to remain open for a timer to finish.
+This repository contains the backend integration used by the companion [Smart Entity Timer Card](https://github.com/abel-smart-timer/smart-entity-timer-card). Smart Entity Timer Card 0.2.2 remains compatible with backend 0.2.0 because Card API stays at version 2.
 
-## Features
+## Core timer features
 
-Each configured timer controls one Home Assistant entity and creates five native Home Assistant entities:
+- Arbitrary whole-minute durations.
+- Turn-on or turn-off final action.
+- Manual cancellation.
+- Automatic cancellation when the target reaches the requested state early.
+- Race-safe final state check before execution.
+- Persistent restart restoration.
+- Expired OFF timers execute after startup by default.
+- Expired ON timers are skipped after startup by default for safety.
+- Multiple independent timers.
+- Optional notification destinations.
+- Card API v2 synchronization across dashboards.
 
-- timer status sensor;
-- duration number in whole minutes;
-- final-action selector (`turn_on` / `turn_off`);
-- start button;
-- cancel button.
+## New in 0.2.0: customizable notifications
 
-Core behavior:
+The existing notification behavior remains the default. In **Helper options**, each title/message field can be left blank or customized independently for:
 
-- arbitrary whole-minute durations;
-- turn-on or turn-off final action;
+- normal completion;
+- errors;
+- actions skipped after restart;
 - manual cancellation;
-- automatic cancellation when the target reaches the requested state early;
-- race-safe final state check before execution;
-- persistent restart restoration;
-- expired OFF timers execute after startup by default;
-- expired ON timers are skipped after startup by default for safety;
-- optional Home Assistant notification targets;
-- multiple independent timers;
-- Card API v2 with backend-owned values and constraints;
-- synchronized card control across multiple browsers and devices through Home Assistant state.
+- automatic cancellation.
+
+Manual and automatic cancellation notifications still respect their existing enable/disable switches.
+
+### Available placeholders
+
+Custom notification text uses a deliberately small, safe placeholder system rather than arbitrary Jinja templates:
+
+| Placeholder | Meaning |
+|---|---|
+| `{timer_name}` | Smart Entity Timer helper/config-entry name |
+| `{target_name}` | Friendly name of the controlled entity |
+| `{target_entity}` | Entity ID |
+| `{action}` | Localized action, such as `encender` / `apagar` |
+| `{action_id}` | Stable value `turn_on` / `turn_off` |
+| `{action_past}` | Localized completed action |
+| `{duration}` | Localized duration |
+| `{duration_minutes}` | Duration as an integer |
+| `{result}` | Stable result value |
+| `{reason}` | Stable reason value, when present |
+| `{finished_at}` | Local finish timestamp |
+| `{restored}` | Localized yes/no indicating restored execution |
+| `{default_title}` | Built-in localized notification title |
+| `{default_message}` | Built-in localized notification message |
+
+Example:
+
+```text
+Title: Temporizador de {target_name}
+Message: {target_name} fue {action_past} después de {duration}.
+```
+
+If either custom field is empty, that field keeps the normal built-in localized text. Invalid placeholders are rejected by the options flow. The Helper options screen also shows the full placeholder list near the notification fields and a practical example below each title/message field, so users do not need to keep the README open while configuring notifications.
+
+## New in 0.2.0: lifecycle events
+
+Automations can listen for:
+
+```text
+smart_entity_timer.started
+smart_entity_timer.completed
+smart_entity_timer.cancelled
+smart_entity_timer.skipped
+smart_entity_timer.error
+```
+
+The `cancelled` event covers both manual and automatic cancellation; inspect `result` and `reason` to distinguish them.
+
+Typical event data:
+
+```yaml
+event_schema_version: 1
+entry_id: abc123
+timer_name: Temporizador baño
+target_entity: light.luz_del_bano
+target_name: Luz del baño
+target_state: "off"
+action: turn_off
+duration_minutes: 30
+result: completed
+reason: null
+restored: false
+finished_at: "2026-08-07T19:00:00+00:00"
+event_time: "2026-08-07T19:00:00+00:00"
+```
+
+These events make it possible to build custom automations, alternate notification systems, logging, announcements, dashboards, or integrations without adding product-specific options to Smart Entity Timer.
 
 ## Supported domains
 
 `switch`, `light`, `fan`, `climate`, `media_player`, `humidifier`, `input_boolean`, `remote`, and `water_heater`.
 
-## Recommended installation: HACS
+## Installation for 0.2.0 testing
 
-1. Open **HACS** in Home Assistant.
-2. Search for **Smart Entity Timer**.
-3. Download/install the integration.
-4. Restart Home Assistant when HACS requests it.
-5. Open **Settings → Devices & services → Helpers**.
-6. Select **Create helper → Smart Entity Timer**.
-7. Choose the entity, default action, duration, notification targets, and restart behavior.
-
-A clean HACS installation has been validated together with Smart Entity Timer Card on Home Assistant OS running on a Raspberry Pi 5.
-
-## Manual installation
+Version 0.1.3 remains the current stable release. Test 0.2.0 manually before publishing a new GitHub Release.
 
 1. Create a Home Assistant backup.
-2. Copy `custom_components/smart_entity_timer` to:
-
-   `/config/custom_components/smart_entity_timer`
-
-3. Restart Home Assistant.
-4. Open **Settings → Devices & services → Helpers**.
-5. Select **Create helper → Smart Entity Timer**.
-
-Existing 0.1.2 helpers are migrated automatically when 0.1.3 loads.
-
-## Configuration vs options
-
-The controlled target entity is structural configuration. To change it, use **Reconfigure** for the helper/config entry.
-
-Timer preferences remain in **Options**, including default action, default duration, maximum duration, notification targets, restart policies, and confirmation timeout.
-
-## Notifications
-
-Smart Entity Timer can send notifications to compatible Home Assistant notification entities or devices when configured.
-
-Current 0.1.3 notification messages are generated by the integration using fixed built-in wording. Completion notifications have been validated successfully on a fresh Home Assistant installation with a compatible notification device.
-
-Custom notification titles/messages are intentionally not part of 0.1.3. A future version may add simple message templates and lifecycle events while preserving the current defaults. See [`docs/ROADMAP.md`](docs/ROADMAP.md).
-
-## Card API v2
-
-The status sensor is the source of truth for dashboard cards. It publishes data similar to:
-
-```yaml
-state: active
-attributes:
-  target_entity: light.luz_del_bano
-  target_entity_name: Luz del baño
-  target_entity_state: "on"
-  target_state_reached: false
-  end_action: turn_off
-  duration_minutes: 90
-  duration_seconds: 5400
-  started_at: "2026-08-07T01:00:00+00:00"
-  finishes_at: "2026-08-07T02:30:00+00:00"
-  can_start: false
-  can_cancel: true
-  backend_version: "0.1.3"
-  card_api_version: 2
-  capabilities:
-    - turn_on
-    - turn_off
-    - set_duration
-    - set_action
-    - start
-    - cancel
-  constraints:
-    min_seconds: 60
-    max_seconds: 86400
-    step_seconds: 60
-  companion_entities:
-    duration: number.luz_del_bano_duracion
-    action: select.luz_del_bano_accion
-    start: button.luz_del_bano_iniciar
-    cancel: button.luz_del_bano_cancelar
-```
-
-The companion entity IDs are published for interoperability. Smart Entity Timer Card 0.1.1 and newer use Card API v2 and do not need to query the Home Assistant Entity Registry to discover them.
+2. Copy `custom_components/smart_entity_timer` to `/config/custom_components/smart_entity_timer`.
+3. Replace the existing 0.1.3 files.
+4. Restart Home Assistant.
+5. Existing helpers should remain in place; do not delete them.
+6. Confirm `backend_version: 0.2.0` and `card_api_version: 2` on the status sensor.
 
 ## Actions
 
@@ -130,25 +127,12 @@ data:
   end_action: turn_off
 ```
 
-Both fields are optional individually; at least one must be supplied.
-
 ### Start
 
 ```yaml
 action: smart_entity_timer.start
 target:
   entity_id: sensor.luz_del_bano_estado
-```
-
-Optional per-run overrides are supported:
-
-```yaml
-action: smart_entity_timer.start
-target:
-  entity_id: sensor.luz_del_bano_estado
-data:
-  duration_minutes: 45
-  end_action: turn_on
 ```
 
 ### Cancel
@@ -159,39 +143,16 @@ target:
   entity_id: sensor.luz_del_bano_estado
 ```
 
-## Entity naming
+## Compatibility
 
-Version 0.1.3 uses Home Assistant's modern `has_entity_name = True` model and translated entity names for all five entities. Existing unique IDs are unchanged, so upgrading does not intentionally replace existing entities.
-
-## Tested behavior
-
-The current integration/card combination has been manually validated for:
-
-- normal ON and OFF completion;
-- manual cancellation;
-- automatic cancellation when the target reaches the requested state early;
-- Home Assistant restart restoration;
-- expired OFF timers during downtime;
-- safe skipping of expired ON timers during downtime;
-- multiple simultaneous timers;
-- unavailable entities;
-- arbitrary durations;
-- helper option changes and recreation;
-- multi-browser synchronization through Card API v2;
-- clean HACS installation;
-- compatible-device notification delivery.
-
-See [`docs/TEST_PLAN.md`](docs/TEST_PLAN.md) and [`docs/TEST_STATUS.md`](docs/TEST_STATUS.md).
+- Existing 0.1.3 config entries require no destructive migration.
+- Existing notification targets and cancellation-notification switches keep their meaning.
+- Empty custom notification fields preserve all 0.1.3 notification wording.
+- Card API remains `2`; no Smart Entity Timer Card update is required.
 
 ## Validation
 
-The repository includes:
-
-- Python compilation checks;
-- dependency-light regression tests for target-state semantics and the Card API contract;
-- Hassfest;
-- HACS validation;
-- the manual functional test plan.
+The repository includes Python compilation checks, dependency-light unit tests, Hassfest, HACS validation, and the manual test plan in [`docs/TEST_PLAN.md`](docs/TEST_PLAN.md).
 
 ## License
 

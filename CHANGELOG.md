@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.2.0 — 2026-08-07
+
+Notification customization and lifecycle-events release candidate.
+
+- Added optional custom titles and messages for completion, errors, skipped restart actions, manual cancellation, and automatic cancellation.
+- Empty template fields keep the existing localized notification text unchanged.
+- Added safe named placeholders without arbitrary Jinja execution.
+- Added lifecycle events: `smart_entity_timer.started`, `smart_entity_timer.completed`, `smart_entity_timer.cancelled`, `smart_entity_timer.skipped`, and `smart_entity_timer.error`.
+- Lifecycle events expose stable timer/result metadata but never notification destination identifiers.
+- Custom templates are redacted from diagnostics; diagnostics only report whether each template is configured.
+- Card API remains version 2, so Smart Entity Timer Card 0.2.2 remains compatible without changes.
+- Fixed the last-second automatic-cancellation path so the existing automatic-cancel notification preference applies consistently.
+
 ## 0.1.3 — 2026-08-06
 
 Architecture and card-contract stabilization release.

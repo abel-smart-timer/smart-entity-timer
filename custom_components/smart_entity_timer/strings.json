@@ -27,7 +27,7 @@
     "error": {
       "name_required": "Enter a name.",
       "timer_active": "Cancel or wait for the active timer before reconfiguring it.",
-      "unsupported_domain": "This entity domain is not supported in version 0.1.3.",
+      "unsupported_domain": "This entity domain is not supported.",
       "entity_not_found": "The entity does not currently exist in Home Assistant.",
       "already_configured": "A Smart Entity Timer already controls this entity."
     },
@@ -40,7 +40,7 @@
     "step": {
       "init": {
         "title": "Timer options",
-        "description": "These options change timer preferences. Use Reconfigure to change the target entity.",
+        "description": "Available placeholders: {timer_name}, {target_name}, {target_entity}, {action}, {action_id}, {action_past}, {duration}, {duration_minutes}, {result}, {reason}, {finished_at}, {restored}, {default_title}, {default_message}. Example title: Timer for {target_name}. Example message: {default_message} Finished: {finished_at}. Leave any custom field blank to keep the built-in text.",
         "data": {
           "default_action": "Default final action",
           "default_duration_minutes": "Default duration",
@@ -50,18 +50,39 @@
           "notify_auto_cancel": "Notify automatic cancellations",
           "execute_expired_turn_off": "Execute an expired turn-off after restart",
           "execute_expired_turn_on": "Execute an expired turn-on after restart",
-          "confirmation_timeout": "State confirmation timeout"
+          "confirmation_timeout": "State confirmation timeout",
+          "notification_completed_title": "Custom completion title",
+          "notification_completed_message": "Custom completion message",
+          "notification_error_title": "Custom error title",
+          "notification_error_message": "Custom error message",
+          "notification_skipped_title": "Custom skipped title",
+          "notification_skipped_message": "Custom skipped message",
+          "notification_manual_cancel_title": "Custom manual-cancel title",
+          "notification_manual_cancel_message": "Custom manual-cancel message",
+          "notification_auto_cancel_title": "Custom automatic-cancel title",
+          "notification_auto_cancel_message": "Custom automatic-cancel message"
         },
         "data_description": {
           "execute_expired_turn_off": "Recommended: enabled. If Home Assistant was offline when an OFF timer expired, turn the entity off after startup.",
           "execute_expired_turn_on": "Recommended: disabled. Prevents unexpected activation after a long outage.",
-          "confirmation_timeout": "How long to wait for the entity to confirm the requested state."
+          "confirmation_timeout": "How long to wait for the entity to confirm the requested state.",
+          "notification_completed_title": "Optional. Example: Timer for {target_name}",
+          "notification_completed_message": "Optional. Example: {target_name} was {action_past} after {duration}.",
+          "notification_error_title": "Optional. Example: Timer error — {target_name}",
+          "notification_error_message": "Optional. Example: {target_name} could not complete {action}. Reason: {reason}.",
+          "notification_skipped_title": "Optional. Example: Timer action skipped",
+          "notification_skipped_message": "Optional. Example: {action} for {target_name} was skipped. Reason: {reason}.",
+          "notification_manual_cancel_title": "Optional. Example: Timer cancelled",
+          "notification_manual_cancel_message": "Optional. Example: {timer_name} was cancelled manually.",
+          "notification_auto_cancel_title": "Optional. Example: Timer cancelled automatically",
+          "notification_auto_cancel_message": "Optional. Example: {target_name} reached the requested state before the timer finished."
         }
       }
     },
     "error": {
       "timer_active": "Cancel or wait for the active timer before changing options.",
-      "duration_above_maximum": "The default duration cannot exceed the maximum duration."
+      "duration_above_maximum": "The default duration cannot exceed the maximum duration.",
+      "invalid_notification_template": "The notification template contains an unsupported placeholder or invalid braces."
     }
   },
   "selector": {

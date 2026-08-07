@@ -20,6 +20,16 @@ from .const import (
     CONF_EXECUTE_EXPIRED_TURN_ON,
     CONF_MAX_DURATION_MINUTES,
     CONF_NOTIFICATION_TARGET,
+    CONF_NOTIFICATION_AUTO_CANCEL_MESSAGE,
+    CONF_NOTIFICATION_AUTO_CANCEL_TITLE,
+    CONF_NOTIFICATION_COMPLETED_MESSAGE,
+    CONF_NOTIFICATION_COMPLETED_TITLE,
+    CONF_NOTIFICATION_ERROR_MESSAGE,
+    CONF_NOTIFICATION_ERROR_TITLE,
+    CONF_NOTIFICATION_MANUAL_CANCEL_MESSAGE,
+    CONF_NOTIFICATION_MANUAL_CANCEL_TITLE,
+    CONF_NOTIFICATION_SKIPPED_MESSAGE,
+    CONF_NOTIFICATION_SKIPPED_TITLE,
     CONF_NOTIFY_AUTO_CANCEL,
     CONF_NOTIFY_MANUAL_CANCEL,
     CONF_TARGET_ENTITY,
@@ -30,10 +40,13 @@ from .const import (
     DEFAULT_EXECUTE_EXPIRED_TURN_ON,
     DEFAULT_MAX_DURATION_MINUTES,
     DEFAULT_NOTIFY_AUTO_CANCEL,
+    DEFAULT_NOTIFICATION_TEMPLATE,
     DEFAULT_NOTIFY_MANUAL_CANCEL,
+    NOTIFICATION_TEMPLATE_CONFIG_KEYS,
     DOMAIN,
     SUPPORTED_DOMAINS,
 )
+from .notifications import validate_notification_template
 
 ENTITY_SELECTOR = selector.EntitySelector(
     selector.EntitySelectorConfig(domain=list(SUPPORTED_DOMAINS))
@@ -49,6 +62,12 @@ NOTIFICATION_TARGET_SELECTOR = selector.TargetSelector(
     selector.TargetSelectorConfig(
         entity=selector.EntitySelectorConfig(domain=["notify"]),
     )
+)
+NOTIFICATION_TITLE_SELECTOR = selector.TextSelector(
+    selector.TextSelectorConfig(multiline=False)
+)
+NOTIFICATION_MESSAGE_SELECTOR = selector.TextSelector(
+    selector.TextSelectorConfig(multiline=True)
 )
 
 
@@ -72,6 +91,16 @@ def _base_defaults() -> dict[str, Any]:
         CONF_NOTIFICATION_TARGET: {},
         CONF_NOTIFY_MANUAL_CANCEL: DEFAULT_NOTIFY_MANUAL_CANCEL,
         CONF_NOTIFY_AUTO_CANCEL: DEFAULT_NOTIFY_AUTO_CANCEL,
+        CONF_NOTIFICATION_COMPLETED_TITLE: DEFAULT_NOTIFICATION_TEMPLATE,
+        CONF_NOTIFICATION_COMPLETED_MESSAGE: DEFAULT_NOTIFICATION_TEMPLATE,
+        CONF_NOTIFICATION_ERROR_TITLE: DEFAULT_NOTIFICATION_TEMPLATE,
+        CONF_NOTIFICATION_ERROR_MESSAGE: DEFAULT_NOTIFICATION_TEMPLATE,
+        CONF_NOTIFICATION_SKIPPED_TITLE: DEFAULT_NOTIFICATION_TEMPLATE,
+        CONF_NOTIFICATION_SKIPPED_MESSAGE: DEFAULT_NOTIFICATION_TEMPLATE,
+        CONF_NOTIFICATION_MANUAL_CANCEL_TITLE: DEFAULT_NOTIFICATION_TEMPLATE,
+        CONF_NOTIFICATION_MANUAL_CANCEL_MESSAGE: DEFAULT_NOTIFICATION_TEMPLATE,
+        CONF_NOTIFICATION_AUTO_CANCEL_TITLE: DEFAULT_NOTIFICATION_TEMPLATE,
+        CONF_NOTIFICATION_AUTO_CANCEL_MESSAGE: DEFAULT_NOTIFICATION_TEMPLATE,
         CONF_EXECUTE_EXPIRED_TURN_OFF: DEFAULT_EXECUTE_EXPIRED_TURN_OFF,
         CONF_EXECUTE_EXPIRED_TURN_ON: DEFAULT_EXECUTE_EXPIRED_TURN_ON,
         CONF_CONFIRMATION_TIMEOUT: DEFAULT_CONFIRMATION_TIMEOUT,
@@ -235,6 +264,13 @@ class SmartEntityTimerOptionsFlow(config_entries.OptionsFlowWithReload):
                 maximum = int(user_input[CONF_MAX_DURATION_MINUTES])
                 if default_duration > maximum:
                     errors[CONF_DEFAULT_DURATION_MINUTES] = "duration_above_maximum"
+                for template_key in NOTIFICATION_TEMPLATE_CONFIG_KEYS:
+                    try:
+                        validate_notification_template(
+                            str(user_input.get(template_key, "") or "")
+                        )
+                    except ValueError:
+                        errors[template_key] = "invalid_notification_template"
 
             if not errors:
                 return self.async_create_entry(title="", data=user_input)
@@ -278,6 +314,46 @@ class SmartEntityTimerOptionsFlow(config_entries.OptionsFlowWithReload):
                     CONF_NOTIFY_AUTO_CANCEL,
                     default=current[CONF_NOTIFY_AUTO_CANCEL],
                 ): selector.BooleanSelector(),
+                vol.Optional(
+                    CONF_NOTIFICATION_COMPLETED_TITLE,
+                    default=current.get(CONF_NOTIFICATION_COMPLETED_TITLE, ""),
+                ): NOTIFICATION_TITLE_SELECTOR,
+                vol.Optional(
+                    CONF_NOTIFICATION_COMPLETED_MESSAGE,
+                    default=current.get(CONF_NOTIFICATION_COMPLETED_MESSAGE, ""),
+                ): NOTIFICATION_MESSAGE_SELECTOR,
+                vol.Optional(
+                    CONF_NOTIFICATION_ERROR_TITLE,
+                    default=current.get(CONF_NOTIFICATION_ERROR_TITLE, ""),
+                ): NOTIFICATION_TITLE_SELECTOR,
+                vol.Optional(
+                    CONF_NOTIFICATION_ERROR_MESSAGE,
+                    default=current.get(CONF_NOTIFICATION_ERROR_MESSAGE, ""),
+                ): NOTIFICATION_MESSAGE_SELECTOR,
+                vol.Optional(
+                    CONF_NOTIFICATION_SKIPPED_TITLE,
+                    default=current.get(CONF_NOTIFICATION_SKIPPED_TITLE, ""),
+                ): NOTIFICATION_TITLE_SELECTOR,
+                vol.Optional(
+                    CONF_NOTIFICATION_SKIPPED_MESSAGE,
+                    default=current.get(CONF_NOTIFICATION_SKIPPED_MESSAGE, ""),
+                ): NOTIFICATION_MESSAGE_SELECTOR,
+                vol.Optional(
+                    CONF_NOTIFICATION_MANUAL_CANCEL_TITLE,
+                    default=current.get(CONF_NOTIFICATION_MANUAL_CANCEL_TITLE, ""),
+                ): NOTIFICATION_TITLE_SELECTOR,
+                vol.Optional(
+                    CONF_NOTIFICATION_MANUAL_CANCEL_MESSAGE,
+                    default=current.get(CONF_NOTIFICATION_MANUAL_CANCEL_MESSAGE, ""),
+                ): NOTIFICATION_MESSAGE_SELECTOR,
+                vol.Optional(
+                    CONF_NOTIFICATION_AUTO_CANCEL_TITLE,
+                    default=current.get(CONF_NOTIFICATION_AUTO_CANCEL_TITLE, ""),
+                ): NOTIFICATION_TITLE_SELECTOR,
+                vol.Optional(
+                    CONF_NOTIFICATION_AUTO_CANCEL_MESSAGE,
+                    default=current.get(CONF_NOTIFICATION_AUTO_CANCEL_MESSAGE, ""),
+                ): NOTIFICATION_MESSAGE_SELECTOR,
                 vol.Required(
                     CONF_EXECUTE_EXPIRED_TURN_OFF,
                     default=current[CONF_EXECUTE_EXPIRED_TURN_OFF],

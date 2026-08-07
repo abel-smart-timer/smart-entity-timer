@@ -1,38 +1,23 @@
-SMART ENTITY TIMER 0.1.3 — INSTALLATION / UPDATE
+SMART ENTITY TIMER 0.2.0 — TEST INSTALLATION / UPDATE
 
-RECOMMENDED: HACS
-
-1. Open HACS in Home Assistant.
-2. Search for "Smart Entity Timer".
-3. Download/install the integration.
-4. Restart Home Assistant when requested.
-5. Open Settings > Devices & services > Helpers.
-6. Create a Smart Entity Timer helper.
-
-The integration has been validated on a clean Home Assistant OS installation together with Smart Entity Timer Card.
-
-MANUAL INSTALLATION
+CURRENT STABLE RELEASE: 0.1.3
+0.2.0 is a test candidate until the new notification and event features pass HAOS testing.
 
 1. Create a Home Assistant backup.
 2. Copy custom_components/smart_entity_timer into:
    /config/custom_components/smart_entity_timer
-3. Replace the existing files if upgrading from 0.1.2.
+3. Replace the existing 0.1.3 files.
 4. Restart Home Assistant.
-5. Open Settings > Devices & services > Helpers.
-6. Create Smart Entity Timer helpers from there.
+5. Do NOT delete existing Smart Entity Timer helpers.
+6. Confirm the status sensor reports:
+   backend_version: 0.2.0
+   card_api_version: 2
 
-UPGRADE NOTES FROM 0.1.2
-- Do not delete existing helpers.
-- Existing helper entries are migrated automatically.
-- Existing unique IDs remain unchanged.
-- The target entity is changed with Reconfigure, not Options.
-- Card API v2 is intended for Smart Entity Timer Card 0.1.1 or newer.
-- Recommended companion card: Smart Entity Timer Card 0.2.2 or newer.
-
-NOTIFICATIONS
-- Notification targets are optional.
-- Compatible notification devices/entities have been tested successfully.
-- Version 0.1.3 uses fixed built-in notification wording.
-- Custom notification templates are planned for consideration in a future version.
+NEW IN 0.2.0
+- Optional per-result notification titles and messages.
+- Safe placeholders documented in README.md.
+- Lifecycle events for started/completed/cancelled/skipped/error.
+- Existing blank templates preserve the 0.1.3 notification messages.
+- Smart Entity Timer Card 0.2.2 remains compatible.
 
 Minimum Home Assistant version: 2026.7.0
