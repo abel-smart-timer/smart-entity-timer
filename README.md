@@ -5,7 +5,7 @@ Persistent turn-on/turn-off timers for Home Assistant entities.
 **Version:** 0.3.0  
 **Minimum Home Assistant version:** 2026.7.0  
 **Card API:** 2  
-**Recommended card:** [Smart Entity Timer Card 0.2.2 or newer](https://github.com/abel-smart-timer/smart-entity-timer-card)
+**Recommended card:** [Smart Entity Timer Card 0.3.0 or newer](https://github.com/abel-smart-timer/smart-entity-timer-card)
 
 ## What changes in 0.3.0
 
@@ -120,7 +120,9 @@ The public event contract remains:
 
 ## Card API v2 compatibility
 
-Card API remains version 2. Smart Entity Timer Card 0.2.2 continues working without changes, including existing cards that point to migrated sensor entity IDs.
+Card API remains version 2. **Smart Entity Timer Card 0.3.0 is the recommended companion card.** Existing Smart Entity Timer Card 0.2.2 configurations also continue working without changes, including cards that point to migrated sensor entity IDs.
+
+Smart Entity Timer Card 0.3.0 adds the mobile-first `mini` and `tile` layouts, compact action-button modes, and density controls without requiring any backend API change.
 
 The status sensor remains the source of truth for the dashboard card and publishes `capabilities`, `constraints`, `companion_entities`, duration, action, timestamps, and timer lifecycle data.
 
@@ -161,6 +163,8 @@ Install or update **Smart Entity Timer** from HACS and restart Home Assistant wh
 
 For an upgrade from 0.2.x, first follow the upgrade procedure above: stop/cancel all timers and create a backup.
 
+For the dashboard, install **Smart Entity Timer Card 0.3.0 or newer** from HACS.
+
 ### Manual installation
 
 1. Create a Home Assistant backup.
@@ -183,7 +187,7 @@ Do not delete existing 0.2.x helpers before the first 0.3.0 start; they are the 
 - deleting one timer without affecting the others;
 - migration of one and multiple 0.2.0 timers;
 - preservation of existing entity IDs;
-- Smart Entity Timer Card 0.2.2 compatibility;
+- Smart Entity Timer Card 0.3.0 compatibility through Card API v2;
 - personalized notifications and lifecycle events after migration.
 
 The repository also includes Python compilation, dependency-light regression tests, Hassfest, HACS validation, and a manual functional/migration test plan.
