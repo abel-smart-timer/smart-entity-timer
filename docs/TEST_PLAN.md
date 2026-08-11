@@ -488,24 +488,18 @@ Expected:
 - all recorded entity IDs remain unchanged;
 - all timer configurations remain associated with the correct target.
 
-## T47 — Optional robustness: upgrade with a persisted active timer
-
-This test is **not part of the 0.3.0 release gate**. The supported 0.2.x → 0.3.0 upgrade procedure requires every Smart Entity Timer to be idle before installing the update.
-
-If a developer wants to exercise the unsupported edge case anyway:
+## T47 — Upgrade with a persisted active timer
 
 1. On 0.2.0 start a timer long enough to survive a Home Assistant restart.
 2. While it is active, replace the files with 0.3.0 and restart Home Assistant.
 3. Do not delete the old helper/config entry beforehand.
 
-Possible robustness goal:
+Expected:
 
 - migration creates the corresponding timer subentry;
 - the original persistent storage is found using the preserved legacy timer ID;
 - the timer restores with its original absolute finish time;
 - it completes/cancels according to the normal restart policy exactly once.
-
-Failure of this optional edge-case test does not block release as long as the documented idle-timer upgrade procedure works.
 
 ## T48 — Smart Entity Timer Card 0.2.2 compatibility after migration
 
@@ -534,10 +528,11 @@ Expected:
 
 ## T50 — HACS/release gate
 
-Release gate after required tests T40-T46 and T48-T49 pass (T47 is optional):
+Only after T40-T49 pass:
 
 1. Upload the complete 0.3.0 repository candidate to GitHub.
 2. Confirm Python checks, Hassfest, and HACS validation are green.
-3. Publish `v0.3.0` only after the UI, migration, Card API, notifications, and events have passed and all repository CI checks are green.
+3. Before publishing the release, repeat one clean install/update using the exact committed files.
+4. Publish `v0.3.0` only after the UI, migration, Card API, notifications, and events all pass.
 
 Expected: 0.3.0 becomes a normal HACS update in the existing `smart-entity-timer` repository; no new repository or domain is required.

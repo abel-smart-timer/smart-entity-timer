@@ -96,7 +96,7 @@ class ApiContractTests(unittest.TestCase):
         self.assertEqual(CONST.SERVICE_SET_VALUES, "set_values")
 
     def test_version(self):
-        self.assertEqual(CONST.VERSION, "0.3.0")
+        self.assertEqual(CONST.VERSION, "1.0.0")
 
     def test_subentry_architecture_constants(self):
         self.assertEqual(CONST.CONFIG_ENTRY_VERSION, 2)

@@ -1,15 +1,56 @@
 # Smart Entity Timer
 
-Persistent turn-on/turn-off timers for Home Assistant entities.
+Persistent turn-on/turn-off timers for Home Assistant entities, with the dashboard card included.
 
-**Version:** 0.3.0  
+**Version:** 1.0.0  
 **Minimum Home Assistant version:** 2026.7.0  
 **Card API:** 2  
-**Recommended card:** [Smart Entity Timer Card 0.3.0 or newer](https://github.com/abel-smart-timer/smart-entity-timer-card)
+**Installation:** one HACS integration package — backend + Smart Entity Timer Card
 
-## What changes in 0.3.0
+## Smart Entity Timer 1.0.0
 
-Smart Entity Timer is now modeled as **one Home Assistant integration entry with one config subentry per timer**.
+Version 1.0.0 turns Smart Entity Timer into an **all-in-one Home Assistant package**. Installing the integration now also installs and registers the Smart Entity Timer Card. A separate HACS download for the card is no longer required.
+
+```text
+Smart Entity Timer 1.0.0
+├── Backend
+│   ├── Config Subentries
+│   ├── persistent timers
+│   ├── notifications
+│   └── lifecycle events
+└── Bundled dashboard card
+    ├── Expanded
+    ├── Compact
+    ├── Mini
+    └── Tile / Mosaico
+```
+
+The public Card API remains **v2**, and existing dashboard YAML keeps the same card type:
+
+```yaml
+type: custom:smart-entity-timer-card
+entity: sensor.luz_del_bano_estado
+```
+
+## Upgrade from 0.3.0
+
+If you currently have both **Smart Entity Timer 0.3.0** and **Smart Entity Timer Card 0.3.0** installed from HACS:
+
+1. Wait for every Smart Entity Timer timer to become idle.
+2. Create a Home Assistant backup.
+3. Update Smart Entity Timer to 1.0.0.
+4. **Before restarting Home Assistant, remove the standalone Smart Entity Timer Card repository from HACS.**
+5. Restart Home Assistant.
+6. Fully reload the browser or close/reopen the Companion App.
+7. Verify that existing Smart Entity Timer cards still render.
+
+The separate card must be removed because 1.0.0 already loads the bundled card. Keeping both installations is unnecessary and can cause an older standalone frontend to be loaded alongside the bundled frontend.
+
+No dashboard card YAML, timer entity IDs, automations, Config Subentries, notification templates, or persistent timer storage are intentionally changed by this packaging transition.
+
+## Architecture
+
+Smart Entity Timer uses one parent Home Assistant integration entry with one Config Subentry per timer.
 
 ```text
 Smart Entity Timer
@@ -19,61 +60,7 @@ Smart Entity Timer
 └── Water heater timer
 ```
 
-This replaces the old 0.2.x model where every timer was an independent Helper config entry.
-
-The practical result is a more intuitive UI:
-
-- Smart Entity Timer is managed from **Settings → Devices & services → Integrations**.
-- The integration has a single parent entry.
-- Use **Add timer** to create additional timer subentries.
-- Reconfigure each timer directly from the Smart Entity Timer integration page.
-- All timer preferences, notification templates, target entity, and restart settings are managed in that timer's reconfigure flow.
-
-The manifest uses `integration_type: hub` because the single parent entry manages multiple timer services, and `single_config_entry: true` prevents accidental duplicate parent entries.
-
-## Upgrade from 0.2.x
-
-On the first Home Assistant start with 0.3.0, existing Smart Entity Timer 0.1.x/0.2.x entries are consolidated automatically:
-
-```text
-Before
-ConfigEntry A → Bathroom light
-ConfigEntry B → Air conditioner
-ConfigEntry C → Bedroom fan
-
-After
-Smart Entity Timer parent
-├── Subentry → Bathroom light
-├── Subentry → Air conditioner
-└── Subentry → Bedroom fan
-```
-
-The migration preserves:
-
-- existing `entity_id` values;
-- existing entity `unique_id` values;
-- timer persistent-storage keys;
-- configured target entities and preferences;
-- personalized notification templates;
-- dashboard cards and automations that reference the existing status sensor.
-
-For migrated timers, the old config-entry ID becomes the timer's stable internal ID. New 0.3.x timers use their config-subentry ID as their stable timer ID.
-
-### Important upgrade procedure
-
-Before upgrading from 0.2.x to 0.3.0:
-
-1. **Wait for every active timer to finish or cancel it.** Do not update while any Smart Entity Timer is active or executing.
-2. Create a Home Assistant backup.
-3. Install/update Smart Entity Timer.
-4. Restart Home Assistant.
-5. Open **Settings → Devices & services → Integrations → Smart Entity Timer** and verify that all previous timers appear under the single integration entry.
-
-Updating while a timer is active is not part of the supported upgrade procedure for the 0.2.x → 0.3.0 topology migration.
-
-## Existing timer behavior remains unchanged
-
-Each timer still creates five native entities:
+Each timer creates five native entities:
 
 - timer status sensor;
 - duration number in whole minutes;
@@ -81,7 +68,46 @@ Each timer still creates five native entities:
 - start button;
 - cancel button.
 
-The timer still runs entirely in Home Assistant, so no dashboard or browser must remain open.
+The timer runs in Home Assistant itself; no dashboard or browser needs to remain open.
+
+## Bundled dashboard card
+
+The card JavaScript is shipped inside:
+
+```text
+custom_components/smart_entity_timer/www/smart-entity-timer-card.js
+```
+
+At startup the integration serves that file through Home Assistant and registers it as a frontend ES module. There is no separate `/hacsfiles/smart-entity-timer-card/...` resource on a clean 1.0.0 installation.
+
+### Mini example
+
+```yaml
+type: custom:smart-entity-timer-card
+entity: sensor.aire_sala_aire_estado
+layout: mini
+action_mode: turn_off
+button_mode: auto
+progress_style: bar
+quick_times:
+  - "30"
+  - "60"
+  - "120"
+  - "180"
+```
+
+### Tile / Mosaico example
+
+```yaml
+type: custom:smart-entity-timer-card
+entity: sensor.aire_sala_aire_estado
+layout: tile
+action_mode: turn_off
+button_mode: auto
+progress_style: bar
+```
+
+## Core timer behavior
 
 - Arbitrary whole-minute durations.
 - Turn-on or turn-off final action.
@@ -93,7 +119,7 @@ The timer still runs entirely in Home Assistant, so no dashboard or browser must
 - Expired ON timers are skipped after startup by default for safety.
 - Personalized lifecycle notifications.
 - Lifecycle events for advanced automations.
-- Multiple independent timers.
+- Multiple independent timer Config Subentries.
 - Card API v2.
 
 ## Supported domains
@@ -102,29 +128,19 @@ The timer still runs entirely in Home Assistant, so no dashboard or browser must
 
 ## Notifications
 
-0.3.0 keeps the notification customization introduced in 0.2.0. Custom title/message fields support:
+Custom title/message fields support:
 
 `{timer_name}`, `{target_name}`, `{target_entity}`, `{action}`, `{action_id}`, `{action_past}`, `{duration}`, `{duration_minutes}`, `{result}`, `{reason}`, `{finished_at}`, `{restored}`, `{default_title}`, `{default_message}`.
 
-Leave a custom field blank to preserve the built-in message. The available variables and examples are also shown directly in the timer configuration UI.
+Leave a custom field blank to preserve the built-in message.
 
 ## Lifecycle events
-
-The public event contract remains:
 
 - `smart_entity_timer.started`
 - `smart_entity_timer.completed`
 - `smart_entity_timer.cancelled`
 - `smart_entity_timer.skipped`
 - `smart_entity_timer.error`
-
-## Card API v2 compatibility
-
-Card API remains version 2. **Smart Entity Timer Card 0.3.0 is the recommended companion card.** Existing Smart Entity Timer Card 0.2.2 configurations also continue working without changes, including cards that point to migrated sensor entity IDs.
-
-Smart Entity Timer Card 0.3.0 adds the mobile-first `mini` and `tile` layouts, compact action-button modes, and density controls without requiring any backend API change.
-
-The status sensor remains the source of truth for the dashboard card and publishes `capabilities`, `constraints`, `companion_entities`, duration, action, timestamps, and timer lifecycle data.
 
 ## Actions
 
@@ -157,40 +173,45 @@ target:
 
 ## Installation
 
-### HACS (recommended)
+### HACS — recommended
 
-Install or update **Smart Entity Timer** from HACS and restart Home Assistant when requested.
+Install **Smart Entity Timer** from HACS and restart Home Assistant when requested. The dashboard card is included automatically.
 
-For an upgrade from 0.2.x, first follow the upgrade procedure above: stop/cancel all timers and create a backup.
+Do **not** install Smart Entity Timer Card separately on a clean 1.0.0 installation.
 
-For the dashboard, install **Smart Entity Timer Card 0.3.0 or newer** from HACS.
-
-### Manual installation
+### Manual
 
 1. Create a Home Assistant backup.
-2. Ensure all Smart Entity Timer timers are idle if upgrading from 0.2.x.
+2. Ensure all Smart Entity Timer timers are idle before an upgrade.
 3. Copy `custom_components/smart_entity_timer` into `/config/custom_components/smart_entity_timer`.
-4. Replace the existing files when upgrading.
-5. Restart Home Assistant.
-6. Open **Settings → Devices & services → Integrations → Smart Entity Timer**.
+4. Replace the existing files.
+5. If upgrading from the old standalone card, remove its old Lovelace/HACS resource before restarting.
+6. Restart Home Assistant.
+7. Fully reload the frontend.
 
-Do not delete existing 0.2.x helpers before the first 0.3.0 start; they are the migration input.
+## Development
+
+The frontend source continues to be developed in:
+
+`abel-smart-timer/smart-entity-timer-card`
+
+That repository is the frontend development source. The user-facing 1.x product is distributed from `abel-smart-timer/smart-entity-timer` with the compiled card bundled inside the integration.
 
 ## Validation
 
-0.3.0 was validated on real Home Assistant installations for:
+Before releasing 1.0.0, validate:
 
-- clean installation on Raspberry Pi 5;
-- adding multiple timers under one parent integration;
-- centralized timer reconfiguration;
-- blocking add/reconfigure while any timer is active;
-- deleting one timer without affecting the others;
-- migration of one and multiple 0.2.0 timers;
-- preservation of existing entity IDs;
-- Smart Entity Timer Card 0.3.0 compatibility through Card API v2;
-- personalized notifications and lifecycle events after migration.
+- clean HACS installation with only Smart Entity Timer;
+- upgrade from Smart Entity Timer 0.3.0 + standalone Card 0.3.0;
+- existing dashboard cards unchanged;
+- card picker registration;
+- Mini, Tile, Compact and Expanded layouts;
+- timer start/cancel/completion and auto-cancel;
+- restart persistence;
+- notifications and lifecycle events;
+- HACS validation and Hassfest.
 
-The repository also includes Python compilation, dependency-light regression tests, Hassfest, HACS validation, and a manual functional/migration test plan.
+See `docs/TEST_PLAN_1.0.0.md` for the release-gate procedure.
 
 ## License
 

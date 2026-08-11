@@ -22,6 +22,7 @@ from .const import (
     SERVICE_SET_VALUES,
     SERVICE_START,
 )
+from .frontend import async_register_frontend
 from .manager import SmartEntityTimerManager
 from .migration import async_consolidate_legacy_entries
 
@@ -36,6 +37,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     await async_consolidate_legacy_entries(hass)
 
     hass.data.setdefault(DOMAIN, {})
+
+    # Smart Entity Timer 1.0.0 is an all-in-one package: backend + dashboard card.
+    await async_register_frontend(hass)
 
     service.async_register_platform_entity_service(
         hass,

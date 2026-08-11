@@ -1,29 +1,31 @@
 # Smart Entity Timer roadmap
 
-## Current published functionality — 0.2.0
+## Current stable baseline — 0.3.0
 
 - Persistent entity timers.
+- One parent integration with Timer Config Subentries.
 - Card API v2.
-- Smart Entity Timer Card 0.2.2 compatibility.
 - Personalized notification templates.
 - Lifecycle events.
-- HACS installation/update support.
+- Smart Entity Timer Card 0.3.0 with Expanded, Compact, Mini and Tile/Mosaico layouts.
 
-## 0.3.0 candidate — centralized management
+## 1.0.0 candidate — all-in-one distribution
 
-Goal: move administration from one Helper entry per timer to one normal Smart Entity Timer integration with one Timer Config Subentry per configured timer.
+Goal: make Smart Entity Timer a complete one-installation HACS product.
 
-Candidate scope:
+Scope:
 
-- one parent config entry;
-- `integration_type: hub`;
-- `single_config_entry: true`;
-- add/reconfigure Timer subentries from the integration page;
-- automatic conversion of existing 0.1.x/0.2.x timer entries;
-- preserve entity IDs, unique IDs, storage identity, Card API v2, notifications, events, cards, and automations.
+- bundle the compiled Smart Entity Timer Card inside the integration;
+- serve it through Home Assistant's static-path API;
+- register it through Home Assistant's frontend extra-module API;
+- preserve `custom:smart-entity-timer-card` and Card API v2;
+- preserve existing timer entity IDs, Config Subentries, storage, automations, notifications and events;
+- retire the separate Card repository from the default HACS catalog after 1.0.0 is verified, while keeping that GitHub repository for frontend development.
 
-No Card API v3 or new timer behavior is planned as part of this architecture change.
+## After 1.0.0
 
-## After 0.3.0
+Use normal semantic versioning:
 
-Only add new functions when they solve a concrete use case or bug. Possible future work can include configuration-form organization, richer diagnostics, and additional notification/event capabilities without changing the core timer semantics unnecessarily.
+- `1.0.x` for compatible bug fixes;
+- `1.x.0` for compatible features;
+- `2.0.0` only for a deliberate breaking public-contract change.

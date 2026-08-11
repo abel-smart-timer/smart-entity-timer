@@ -24,7 +24,7 @@ class RepositoryContractTests(unittest.TestCase):
 
     def test_manifest_exposes_single_hub_entry(self):
         manifest = json.loads((COMPONENT / "manifest.json").read_text())
-        self.assertEqual(manifest["version"], "0.3.0")
+        self.assertEqual(manifest["version"], "1.0.0")
         self.assertEqual(manifest["integration_type"], "hub")
         self.assertTrue(manifest["single_config_entry"])
 
@@ -97,6 +97,31 @@ class RepositoryContractTests(unittest.TestCase):
             self.assertIn("user", timer["initiate_flow"])
             self.assertIn("user", timer["step"])
             self.assertIn("reconfigure", timer["step"])
+
+    def test_all_in_one_frontend_is_bundled(self):
+        manifest = json.loads((COMPONENT / "manifest.json").read_text())
+        self.assertIn("frontend", manifest["dependencies"])
+        self.assertIn("http", manifest["dependencies"])
+
+        asset = COMPONENT / "www" / "smart-entity-timer-card.js"
+        self.assertTrue(asset.is_file())
+        source = asset.read_text()
+        self.assertIn('const CARD_VERSION = "1.0.0";', source)
+        self.assertIn('customElements.get("smart-entity-timer-card")', source)
+        self.assertIn('layout_mini', source)
+        self.assertIn('layout_tile', source)
+        self.assertIn('MIN_CARD_API_VERSION = 2', source)
+
+    def test_frontend_registration_uses_home_assistant_frontend_api(self):
+        frontend = (COMPONENT / "frontend.py").read_text()
+        init = (COMPONENT / "__init__.py").read_text()
+        const = (COMPONENT / "const.py").read_text()
+        self.assertIn("async_register_static_paths", frontend)
+        self.assertIn("StaticPathConfig", frontend)
+        self.assertIn("add_extra_js_url", frontend)
+        self.assertIn("await async_register_frontend(hass)", init)
+        self.assertIn("FRONTEND_CARD_PATH", const)
+        self.assertIn("FRONTEND_CARD_URL", const)
 
 
 if __name__ == "__main__":

@@ -3,11 +3,15 @@
   "name": "Smart Entity Timer",
   "codeowners": [],
   "config_flow": true,
+  "dependencies": [
+    "frontend",
+    "http"
+  ],
   "documentation": "https://github.com/abel-smart-timer/smart-entity-timer",
   "integration_type": "hub",
   "iot_class": "calculated",
   "issue_tracker": "https://github.com/abel-smart-timer/smart-entity-timer/issues",
   "requirements": [],
   "single_config_entry": true,
-  "version": "0.3.0"
+  "version": "1.0.0"
 }

@@ -1,6 +1,17 @@
 # Changelog
 
-## 0.3.0 — 2026-08-07
+## 1.0.0 — release candidate
+
+- Smart Entity Timer becomes an all-in-one HACS integration package.
+- Bundles Smart Entity Timer Card inside `custom_components/smart_entity_timer/www/`.
+- Registers the bundled card with Home Assistant's frontend extra-module API.
+- Serves the bundled JavaScript through `async_register_static_paths`.
+- Keeps Card API v2 and the `custom:smart-entity-timer-card` type unchanged.
+- Keeps the 0.3.0 parent + Config Subentry timer architecture unchanged.
+- Adds release-gate tests for clean installs and migration from the standalone HACS card.
+- Standalone `smart-entity-timer-card` becomes a frontend development repository after the 1.0.0 transition.
+
+## 0.3.0 — test candidate
 
 Centralized integration-management architecture.
 
@@ -17,12 +28,10 @@ Centralized integration-management architecture.
 - Card API remains v2 and Smart Entity Timer Card 0.2.2 compatibility is intentionally preserved.
 - Personalized notifications and lifecycle events from 0.2.0 remain unchanged.
 - Added 0.3.0 topology/migration regression checks and a dedicated manual migration test plan.
-- Validated clean installation, multi-timer migration, entity-ID preservation, centralized reconfiguration, Card 0.2.2 compatibility, notifications, and lifecycle events on real Home Assistant.
-- Documented that all timers must be idle before performing the 0.2.x → 0.3.0 topology upgrade.
 
 ## 0.2.0 — 2026-08-07
 
-Notification customization and lifecycle-events release.
+Notification customization and lifecycle-events release candidate.
 
 - Added optional custom titles and messages for completion, errors, skipped restart actions, manual cancellation, and automatic cancellation.
 - Empty template fields keep the existing localized notification text unchanged.
