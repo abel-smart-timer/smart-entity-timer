@@ -16,6 +16,22 @@ jobs:
       - name: Run regression tests
         run: python3 -m unittest discover -s tests -v
 
+  frontend:
+    name: Bundled frontend checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Check bundled card syntax
+        run: node --check custom_components/smart_entity_timer/www/smart-entity-timer-card.js
+      - name: Check bundled card contract
+        run: |
+          node -e 'const fs=require("fs"); const s=fs.readFileSync("custom_components/smart_entity_timer/www/smart-entity-timer-card.js","utf8"); if(!s.includes("const CARD_VERSION = \"1.0.0\";")) process.exit(1); if(!s.includes("MIN_CARD_API_VERSION = 2")) process.exit(1); if(!s.includes("smart-entity-timer-card")) process.exit(1);'
+
   hassfest:
     name: Hassfest
     runs-on: ubuntu-latest
