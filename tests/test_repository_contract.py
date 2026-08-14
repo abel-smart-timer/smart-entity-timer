@@ -2,7 +2,6 @@
 
 import json
 from pathlib import Path
-import re
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -111,12 +110,7 @@ class RepositoryContractTests(unittest.TestCase):
         self.assertTrue(asset.is_file())
         source = asset.read_text()
 
-        # A documentation-only integration patch may reuse the exact compiled
-        # frontend artifact from the previous package release.
-        card_version = re.search(r'const CARD_VERSION = "([^"]+)";', source)
-        self.assertIsNotNone(card_version)
-        self.assertRegex(card_version.group(1), r"^1\.\d+\.\d+(?:-rc\d+)?$")
-
+        self.assertIn(f'const CARD_VERSION = "{manifest["version"]}";', source)
         self.assertIn('customElements.get("smart-entity-timer-card")', source)
         self.assertIn("layout_mini", source)
         self.assertIn("layout_tile", source)
