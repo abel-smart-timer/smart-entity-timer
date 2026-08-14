@@ -6,12 +6,12 @@ from homeassistant.const import Platform
 
 DOMAIN = "smart_entity_timer"
 NAME = "Smart Entity Timer"
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 MIN_HA_VERSION = "2026.7.0"
 CARD_API_VERSION = 2
 
 # Bundled Smart Entity Timer Card. The file is served by the integration and
-# served by the integration and registered as a Lovelace module resource.
+# registered as a Lovelace module resource.
 FRONTEND_CARD_PATH = f"/{DOMAIN}_static/smart-entity-timer-card.js"
 FRONTEND_CARD_URL = f"{FRONTEND_CARD_PATH}?v={VERSION}"
 

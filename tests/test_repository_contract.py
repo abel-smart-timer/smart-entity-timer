@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+import re
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,9 +25,12 @@ class RepositoryContractTests(unittest.TestCase):
 
     def test_manifest_exposes_single_hub_entry(self):
         manifest = json.loads((COMPONENT / "manifest.json").read_text())
-        self.assertRegex(manifest["version"], r"^1\.0\.0(?:-rc\d+)?$")
+        self.assertRegex(manifest["version"], r"^1\.\d+\.\d+(?:-rc\d+)?$")
         self.assertEqual(manifest["integration_type"], "hub")
         self.assertTrue(manifest["single_config_entry"])
+
+        const = (COMPONENT / "const.py").read_text()
+        self.assertIn(f'VERSION = "{manifest["version"]}"', const)
 
     def test_config_flow_uses_timer_subentries(self):
         source = (COMPONENT / "config_flow.py").read_text()
@@ -50,7 +54,6 @@ class RepositoryContractTests(unittest.TestCase):
         self.assertIn("config_entry_id=parent.entry_id", source)
         self.assertIn("config_subentry_id=subentry.subentry_id", source)
         self.assertIn("await hass.config_entries.async_remove", source)
-        # Entity IDs and unique IDs must remain unchanged during topology migration.
         self.assertNotIn("new_unique_id=", source)
         self.assertNotIn("new_entity_id=", source)
 
@@ -107,11 +110,17 @@ class RepositoryContractTests(unittest.TestCase):
         asset = COMPONENT / "www" / "smart-entity-timer-card.js"
         self.assertTrue(asset.is_file())
         source = asset.read_text()
-        self.assertIn(f'const CARD_VERSION = "{manifest["version"]}";', source)
+
+        # A documentation-only integration patch may reuse the exact compiled
+        # frontend artifact from the previous package release.
+        card_version = re.search(r'const CARD_VERSION = "([^"]+)";', source)
+        self.assertIsNotNone(card_version)
+        self.assertRegex(card_version.group(1), r"^1\.\d+\.\d+(?:-rc\d+)?$")
+
         self.assertIn('customElements.get("smart-entity-timer-card")', source)
-        self.assertIn('layout_mini', source)
-        self.assertIn('layout_tile', source)
-        self.assertIn('MIN_CARD_API_VERSION = 2', source)
+        self.assertIn("layout_mini", source)
+        self.assertIn("layout_tile", source)
+        self.assertIn("MIN_CARD_API_VERSION = 2", source)
 
     def test_frontend_registration_uses_home_assistant_frontend_api(self):
         frontend = (COMPONENT / "frontend.py").read_text()

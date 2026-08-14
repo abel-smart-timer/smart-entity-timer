@@ -1,28 +1,22 @@
-Smart Entity Timer 1.0.0 final all-in-one release
+Smart Entity Timer 1.0.1 documentation / packaging patch
 
-Added in the 1.0.0 line:
-- custom_components/smart_entity_timer/frontend.py
-- custom_components/smart_entity_timer/www/smart-entity-timer-card.js
-- docs/ARCHITECTURE_1.0.md
-- docs/TEST_PLAN_1.0.0.md
-- UPDATE_1.0.0_ES.txt
-
-Finalized for 1.0.0:
-- custom_components/smart_entity_timer/const.py
-- custom_components/smart_entity_timer/manifest.json
+Modified:
 - README.md
+  Expanded into unified integration + bundled card documentation.
 - CHANGELOG.md
+  Added 1.0.1 release notes.
 - INSTALL.txt
-- UPLOAD_TO_GITHUB_ES.txt
-- .github/workflows/validate.yml
-- docs/GITHUB_SETUP.md
-- docs/ROADMAP.md
-- docs/TEST_STATUS.md
-- tests/test_logic.py
+  Updated installation/upgrade instructions for the all-in-one package.
+- custom_components/smart_entity_timer/const.py
+  Package/backend version 1.0.1 and resource cache-busting URL.
+- custom_components/smart_entity_timer/manifest.json
+  Integration package version 1.0.1.
 - tests/test_repository_contract.py
+  Keeps 1.x package-version validation while allowing a documentation-only patch
+  to reuse the unchanged compiled frontend artifact.
 
-Removed from final package:
-- RC2_CI_FIX_ES.md
-- RC2_TEST_STEPS_ES.md
-
-Card API remains v2.
+Not modified:
+- custom_components/smart_entity_timer/www/smart-entity-timer-card.js
+  Frontend behavior is unchanged from 1.0.0.
+- Card API remains v2.
+- Runtime, migrations, services, notifications, lifecycle events and entities are unchanged.

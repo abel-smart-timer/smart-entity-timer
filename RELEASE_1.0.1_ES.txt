@@ -1,0 +1,52 @@
+SMART ENTITY TIMER 1.0.1 — DATOS DEL RELEASE
+
+Tag:
+v1.0.1
+
+Release title:
+Smart Entity Timer 1.0.1
+
+Target:
+main
+
+Pre-release:
+No
+
+Latest release:
+Sí
+
+Release notes:
+
+Smart Entity Timer 1.0.1
+
+This is a documentation and packaging-maintenance update for the all-in-one Smart Entity Timer package.
+
+Highlights
+
+- Smart Entity Timer continues to be distributed as one HACS installation containing both the timer backend and Smart Entity Timer Card.
+- The main README now documents the integration and the bundled card together.
+- Added card visual-editor instructions, layout guide, YAML examples, fixed-action cards, configuration reference, visibility controls, colors, visual styles, progress modes and synchronization behavior.
+- Clarified clean installation and upgrade instructions.
+- Integration package/backend version is now 1.0.1.
+- The Lovelace resource URL is versioned as:
+  /smart_entity_timer_static/smart-entity-timer-card.js?v=1.0.1
+- The compiled card itself is unchanged from 1.0.0; Card API remains v2.
+- Existing card YAML and options remain compatible.
+- No changes to timer runtime behavior, entity IDs, Config Subentries, persistent storage, services, notifications, lifecycle events or migration behavior.
+
+Upgrade from 1.0.0
+
+1. Create a Home Assistant backup.
+2. Update Smart Entity Timer to 1.0.1 from HACS.
+3. Restart Home Assistant.
+4. Fully reload the browser or close/reopen the Companion App.
+5. Existing timers and cards should continue working without YAML changes.
+
+Users upgrading from the old 0.3.0 + standalone Smart Entity Timer Card setup should remove the standalone card repository before restarting Home Assistant, because the card is already bundled with Smart Entity Timer 1.x.
+
+Compatibility
+
+- Home Assistant 2026.7.0 or newer
+- Card API v2
+- Same integration domain: smart_entity_timer
+- Same custom card type: custom:smart-entity-timer-card

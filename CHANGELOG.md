@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.1 — 2026-08-14
+
+Unified documentation and packaging-maintenance release.
+
+- Expanded the main repository README so Smart Entity Timer is documented as one product: integration + bundled dashboard card.
+- Added the card visual-editor workflow, layout guide, YAML examples, fixed-action behavior, configuration reference, visibility options, colors, visual styles, progress modes, and synchronization contract to the main README.
+- Clarified clean HACS installation, 1.0.0 upgrade, and migration from the old 0.3.0 + standalone-card installation.
+- Bumped the integration package/backend version to 1.0.1 and therefore the versioned Lovelace resource URL to `?v=1.0.1`.
+- The compiled Smart Entity Timer Card is intentionally unchanged from 1.0.0; Card API remains v2 and all card YAML/options remain compatible.
+- Updated repository contract validation so documentation-only integration patches may reuse the unchanged compiled frontend artifact while still validating the 1.x package version and Card API contract.
+- No timer runtime, migration, notification, lifecycle-event, entity-ID, Config Subentry, or service behavior changes.
+
 ## 1.0.0 — 2026-08-14
 
 First all-in-one stable release.
