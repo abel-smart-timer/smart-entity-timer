@@ -1,22 +1,32 @@
-Smart Entity Timer 1.0.1 documentation / packaging patch
+Smart Entity Timer 1.0.2 — visual README / presentation patch
 
-Modified:
+NEW
+- docs/images/smart-entity-timer-hero.png
+- docs/images/real-card-states.png
+- docs/images/dashboard-showcase.png
+- docs/images/why-smart-entity-timer.png
+
+MODIFIED
 - README.md
-  Expanded into unified integration + bundled card documentation.
+  Adds the visual hero, feature infographic, real card states and dashboard showcase.
 - CHANGELOG.md
-  Added 1.0.1 release notes.
+  Adds 1.0.2 release notes.
 - INSTALL.txt
-  Updated installation/upgrade instructions for the all-in-one package.
+  Updates installation/upgrade instructions to 1.0.2.
 - custom_components/smart_entity_timer/const.py
-  Package/backend version 1.0.1 and resource cache-busting URL.
+  VERSION = 1.0.2 and therefore resource URL cache-busting becomes ?v=1.0.2.
 - custom_components/smart_entity_timer/manifest.json
-  Integration package version 1.0.1.
-- tests/test_repository_contract.py
-  Keeps 1.x package-version validation while allowing a documentation-only patch
-  to reuse the unchanged compiled frontend artifact.
-
-Not modified:
+  Integration package version = 1.0.2.
 - custom_components/smart_entity_timer/www/smart-entity-timer-card.js
-  Frontend behavior is unchanged from 1.0.0.
+  Version metadata only: CARD_VERSION 1.0.1 -> 1.0.2.
+  Use PATCH_CARD_VERSION_1.0.2.diff or make the one-line edit in GitHub.
+
+UNCHANGED BEHAVIOR
 - Card API remains v2.
-- Runtime, migrations, services, notifications, lifecycle events and entities are unchanged.
+- No timer runtime changes.
+- No service changes.
+- No entity-ID changes.
+- No Config Subentry changes.
+- No persistence changes.
+- No notification or lifecycle-event changes.
+- Existing dashboard YAML remains compatible.

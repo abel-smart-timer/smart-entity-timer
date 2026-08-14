@@ -1,17 +1,19 @@
 # Smart Entity Timer
 
+![Smart Entity Timer — integration and bundled dashboard card](docs/images/smart-entity-timer-hero.png)
+
 Persistent turn-on/turn-off timers for Home Assistant entities, with the dashboard card included in the same HACS integration package.
 
-**Version:** 1.0.1  
+**Version:** 1.0.2  
 **Minimum Home Assistant version:** 2026.7.0  
 **Card API:** 2  
 **Installation:** one HACS integration package — backend + Smart Entity Timer Card
 
-## Smart Entity Timer 1.0.1
+## Smart Entity Timer 1.0.2
 
 Smart Entity Timer is distributed as one product: installing the integration also installs and registers the **Smart Entity Timer Card**. A separate HACS card download is not required.
 
-Version 1.0.1 is a documentation and packaging-maintenance release. Timer behavior and Card API v2 are unchanged from 1.0.0.
+Version 1.0.2 is a visual documentation and presentation update. The README now uses real Smart Entity Timer card screenshots to show the product before users install it. Timer behavior, Card API v2, entity IDs, Config Subentries, services, notifications and lifecycle events are unchanged.
 
 ```text
 Smart Entity Timer
@@ -51,21 +53,21 @@ Do **not** install Smart Entity Timer Card as a second standalone HACS repositor
 
 After Home Assistant starts, the integration serves the bundled card and registers it automatically as a Lovelace JavaScript module.
 
-Expected 1.0.1 resource:
+Expected 1.0.2 resource:
 
 ```text
-/smart_entity_timer_static/smart-entity-timer-card.js?v=1.0.1
+/smart_entity_timer_static/smart-entity-timer-card.js?v=1.0.2
 ```
 
-### Upgrade from 1.0.0
+### Upgrade from 1.0.1
 
 1. Create a Home Assistant backup.
-2. Update **Smart Entity Timer** to 1.0.1 from HACS.
+2. Update **Smart Entity Timer** to 1.0.2 from HACS.
 3. Restart Home Assistant.
 4. Fully reload the browser or close/reopen the Companion App.
 5. Existing timers and dashboard cards should continue working without YAML changes.
 
-No timer entity IDs, Config Subentries, persistent storage, notification templates, lifecycle events, Card API contracts, or dashboard card options are intentionally changed in 1.0.1.
+No timer entity IDs, Config Subentries, persistent storage, notification templates, lifecycle events, Card API contracts, or dashboard card options are intentionally changed in 1.0.2.
 
 ### Upgrade from 0.3.0 + standalone Smart Entity Timer Card
 
@@ -73,7 +75,7 @@ If you still have both old repositories installed:
 
 1. Wait for every Smart Entity Timer timer to become idle.
 2. Create a Home Assistant backup.
-3. Update Smart Entity Timer to 1.0.1.
+3. Update Smart Entity Timer to 1.0.2.
 4. **Before restarting Home Assistant, remove the standalone Smart Entity Timer Card repository from HACS.**
 5. Restart Home Assistant.
 6. Fully reload the browser or close/reopen the Companion App.
@@ -90,6 +92,10 @@ The standalone card is no longer required because the 1.x integration ships and 
 5. Remove the old standalone Card HACS repository/resource if it is still present.
 6. Restart Home Assistant.
 7. Fully reload the frontend.
+
+## Why Smart Entity Timer
+
+![Why Smart Entity Timer — real Home Assistant timer controls](docs/images/why-smart-entity-timer.png)
 
 ## Architecture
 
@@ -134,6 +140,8 @@ The timer runs in Home Assistant itself; no dashboard, browser, phone, or tablet
 
 # Smart Entity Timer Card
 
+![Real Smart Entity Timer card states — active and idle configuration](docs/images/real-card-states.png)
+
 The dashboard card is a first-class part of the Smart Entity Timer package. It is bundled at:
 
 ```text
@@ -157,6 +165,10 @@ You can configure it through Home Assistant's visual card editor or directly in 
 - Modern, Flat, and Minimal visual styles.
 - Bar, ring, or time-only progress.
 - Optional per-control colors that inherit the Home Assistant theme when omitted.
+
+## Dashboard showcase
+
+![Smart Entity Timer inside a Home Assistant dashboard](docs/images/dashboard-showcase.png)
 
 ## Add the card
 
@@ -496,7 +508,7 @@ The 1.0.0 release gate validated the all-in-one architecture on a real Home Assi
 - notifications and lifecycle behavior;
 - GitHub Python checks, bundled frontend checks, Hassfest, and HACS validation.
 
-Version 1.0.1 does not alter those runtime contracts; it expands the main README so the integration and bundled card are documented together.
+Version 1.0.2 does not alter those runtime contracts; it adds a visual product presentation based on real Smart Entity Timer card screenshots.
 
 See `docs/TEST_PLAN_1.0.0.md` for the original all-in-one release-gate procedure.
 

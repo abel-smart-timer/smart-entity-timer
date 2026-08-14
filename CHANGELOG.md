@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.0.2 — 2026-08-14
+
+Visual README and product-presentation release.
+
+- Added four repository-hosted promotional images under `docs/images/`, built around real Smart Entity Timer card screenshots.
+- Added a visual hero banner so the GitHub/HACS documentation immediately shows what Smart Entity Timer is and how the bundled card looks.
+- Added a real-card-states graphic showing active and idle/configuration states.
+- Added a dashboard showcase illustrating Smart Entity Timer in desktop and mobile Home Assistant dashboards.
+- Added a feature infographic summarizing timers, presets, running status, start/cancel controls, restart persistence and the bundled-card architecture.
+- Reorganized the main README so visuals appear alongside the relevant technical documentation instead of being isolated from it.
+- Bumped package/backend/frontend version metadata to 1.0.2 so the bundled Lovelace resource is cache-busted as `?v=1.0.2`.
+- Card API remains v2 and the compiled card behavior is unchanged; only its version metadata changes.
+- No timer runtime, migration, service, entity-ID, Config Subentry, notification, lifecycle-event or dashboard-card configuration behavior changes.
+
 ## 1.0.1 — 2026-08-14
 
 Unified documentation and packaging-maintenance release.
