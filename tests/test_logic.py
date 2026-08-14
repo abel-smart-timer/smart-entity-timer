@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import StrEnum
 import importlib.util
+import json
 from pathlib import Path
 import sys
 import types
@@ -96,7 +97,8 @@ class ApiContractTests(unittest.TestCase):
         self.assertEqual(CONST.SERVICE_SET_VALUES, "set_values")
 
     def test_version(self):
-        self.assertEqual(CONST.VERSION, "1.0.0")
+        manifest = json.loads((COMPONENT / "manifest.json").read_text())
+        self.assertEqual(CONST.VERSION, manifest["version"])
 
     def test_subentry_architecture_constants(self):
         self.assertEqual(CONST.CONFIG_ENTRY_VERSION, 2)

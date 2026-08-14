@@ -24,7 +24,7 @@ class RepositoryContractTests(unittest.TestCase):
 
     def test_manifest_exposes_single_hub_entry(self):
         manifest = json.loads((COMPONENT / "manifest.json").read_text())
-        self.assertEqual(manifest["version"], "1.0.0")
+        self.assertRegex(manifest["version"], r"^1\.0\.0(?:-rc\d+)?$")
         self.assertEqual(manifest["integration_type"], "hub")
         self.assertTrue(manifest["single_config_entry"])
 
@@ -102,11 +102,12 @@ class RepositoryContractTests(unittest.TestCase):
         manifest = json.loads((COMPONENT / "manifest.json").read_text())
         self.assertIn("frontend", manifest["dependencies"])
         self.assertIn("http", manifest["dependencies"])
+        self.assertIn("lovelace", manifest["dependencies"])
 
         asset = COMPONENT / "www" / "smart-entity-timer-card.js"
         self.assertTrue(asset.is_file())
         source = asset.read_text()
-        self.assertIn('const CARD_VERSION = "1.0.0";', source)
+        self.assertIn(f'const CARD_VERSION = "{manifest["version"]}";', source)
         self.assertIn('customElements.get("smart-entity-timer-card")', source)
         self.assertIn('layout_mini', source)
         self.assertIn('layout_tile', source)
@@ -118,6 +119,10 @@ class RepositoryContractTests(unittest.TestCase):
         const = (COMPONENT / "const.py").read_text()
         self.assertIn("async_register_static_paths", frontend)
         self.assertIn("StaticPathConfig", frontend)
+        self.assertIn("async_get_info", frontend)
+        self.assertIn("async_create_item", frontend)
+        self.assertIn("async_update_item", frontend)
+        self.assertIn("res_type", frontend)
         self.assertIn("add_extra_js_url", frontend)
         self.assertIn("await async_register_frontend(hass)", init)
         self.assertIn("FRONTEND_CARD_PATH", const)
