@@ -1,26 +1,26 @@
-SMART ENTITY TIMER 1.0.0 — TEST CANDIDATE
+SMART ENTITY TIMER 1.0.0 — FINAL
 
 Smart Entity Timer 1.0.0 includes the backend and Smart Entity Timer Card in one integration package.
 
-CLEAN MANUAL TEST
-1. Copy custom_components/smart_entity_timer to /config/custom_components/smart_entity_timer.
-2. Restart Home Assistant.
-3. Add Smart Entity Timer from Settings > Devices & services.
-4. Create a timer.
-5. Open a dashboard and add Smart Entity Timer Card from the card picker.
-6. No separate card resource or HACS card repository should be required.
-
-UPGRADE TEST FROM 0.3.0
-1. Stop/cancel every active Smart Entity Timer.
-2. Create a Home Assistant backup.
-3. Replace the integration with 1.0.0.
-4. BEFORE restarting, remove Smart Entity Timer Card from HACS (or remove its old dashboard resource if it was installed manually).
+HACS — RECOMMENDED
+1. Install/update Smart Entity Timer from HACS.
+2. If upgrading from 0.3.0 + the standalone Smart Entity Timer Card, stop/cancel all active timers and create a backup first.
+3. Update Smart Entity Timer to 1.0.0.
+4. BEFORE restarting Home Assistant, remove Smart Entity Timer Card from HACS.
 5. Restart Home Assistant.
-6. Fully reload the browser/app.
-7. Existing cards must render without YAML changes.
+6. Fully reload the browser or close/reopen the Companion App.
+7. Existing cards should render without YAML changes.
+8. On a clean 1.0.0 installation, the card is included automatically; do not install the standalone card.
 
-HACS TEST BEFORE STABLE RELEASE
-After uploading the candidate files to GitHub main, use HACS > Smart Entity Timer > Redownload > Need a different version? > main.
-Then remove the standalone Smart Entity Timer Card from HACS before restarting Home Assistant.
+EXPECTED BUNDLED RESOURCE
+/smart_entity_timer_static/smart-entity-timer-card.js?v=1.0.0
+Type: JavaScript module
 
-DO NOT CREATE v1.0.0 RELEASE UNTIL docs/TEST_PLAN_1.0.0.md IS COMPLETE.
+MANUAL INSTALLATION
+1. Create a Home Assistant backup.
+2. Ensure all Smart Entity Timer timers are idle before an upgrade.
+3. Copy custom_components/smart_entity_timer to /config/custom_components/smart_entity_timer.
+4. Replace existing files.
+5. Remove the old standalone Card HACS/resource if present.
+6. Restart Home Assistant.
+7. Fully reload the frontend.

@@ -1,21 +1,32 @@
 # Smart Entity Timer test status
 
-## Published baseline — 0.3.0
+## Smart Entity Timer 1.0.0 — release gate passed
 
-Smart Entity Timer 0.3.0 has been validated on real Home Assistant installations for the centralized parent + Config Subentry architecture, migration from older entries, preservation of entity IDs, Card API v2, notifications and lifecycle events. Smart Entity Timer Card 0.3.0 has also been validated on real mobile dashboards, including Mini and Tile/Mosaico layouts.
+The all-in-one architecture was validated through the 1.0.0-rc2 candidate.
 
-## 1.0.0 all-in-one candidate
-
-Automated local checks currently pass for:
+Automated validation passed for:
 
 - Python compilation;
 - 26 dependency-light regression tests;
-- backend version `1.0.0`;
+- backend/Card version consistency checks;
 - Card API v2 unchanged;
 - manifest `hub` + `single_config_entry` contract;
-- bundled frontend presence and version;
-- Home Assistant static-path and extra-module registration source contract;
+- bundled frontend presence;
+- Lovelace/static frontend registration source contract;
 - JavaScript syntax of the bundled Card;
-- existing notifications, events, Config Subentries and migration source contracts.
+- notifications, events, Config Subentries and migration source contracts;
+- Hassfest;
+- HACS validation.
 
-Real Home Assistant acceptance is still required before release. Complete `docs/TEST_PLAN_1.0.0.md`, especially the clean HACS install and upgrade from the separated 0.3.0 integration + Card installation.
+Real Home Assistant acceptance passed for the all-in-one packaging path, including:
+
+- installation through HACS;
+- automatic creation of the bundled Lovelace module resource;
+- existing card compatibility without YAML changes;
+- new timer creation;
+- timer start, completion, cancellation and external-state auto-cancel;
+- Mini, Tile/Mosaico, Compact and Expanded layouts;
+- restart persistence;
+- notification/lifecycle behavior.
+
+The final 1.0.0 package changes only the release version and final documentation relative to the approved RC2 behavior.

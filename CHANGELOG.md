@@ -1,15 +1,20 @@
 # Changelog
 
-## 1.0.0 — release candidate
+## 1.0.0 — 2026-08-14
 
-- Smart Entity Timer becomes an all-in-one HACS integration package.
-- Bundles Smart Entity Timer Card inside `custom_components/smart_entity_timer/www/`.
-- Registers the bundled card with Home Assistant's frontend extra-module API.
-- Serves the bundled JavaScript through `async_register_static_paths`.
-- Keeps Card API v2 and the `custom:smart-entity-timer-card` type unchanged.
-- Keeps the 0.3.0 parent + Config Subentry timer architecture unchanged.
-- Adds release-gate tests for clean installs and migration from the standalone HACS card.
-- Standalone `smart-entity-timer-card` becomes a frontend development repository after the 1.0.0 transition.
+First all-in-one stable release.
+
+- Smart Entity Timer is now one HACS installation containing backend + dashboard card.
+- Bundles `smart-entity-timer-card.js` inside `custom_components/smart_entity_timer/www/`.
+- Serves the bundled JavaScript through Home Assistant static paths.
+- Automatically creates/updates the Lovelace JavaScript module resource with a versioned URL.
+- Keeps a frontend extra-module fallback for non-standard Lovelace configurations.
+- Keeps Card API v2 and `custom:smart-entity-timer-card` unchanged.
+- Keeps the 0.3.0 parent + Timer Config Subentry architecture unchanged.
+- Preserves existing dashboard YAML, timer entity IDs, persistent storage, notifications and lifecycle events through the packaging transition.
+- Includes the Card 0.3.0 mobile-first feature set: Expanded, Compact, Mini and Tile/Mosaico layouts, button modes, density controls, colors and progress styles.
+- Validated through the RC2 release gate on a real Home Assistant installation and through Python, bundled frontend, Hassfest and HACS checks.
+- The standalone `smart-entity-timer-card` repository remains the frontend development source and is intended to leave the default HACS catalog after 1.0.0 is verified.
 
 ## 0.3.0 — test candidate
 

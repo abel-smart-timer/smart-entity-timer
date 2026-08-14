@@ -1,26 +1,20 @@
 # Smart Entity Timer roadmap
 
-## Current stable baseline — 0.3.0
+## Current stable — 1.0.0
 
+- One HACS installation for backend + dashboard card.
 - Persistent entity timers.
 - One parent integration with Timer Config Subentries.
 - Card API v2.
 - Personalized notification templates.
 - Lifecycle events.
-- Smart Entity Timer Card 0.3.0 with Expanded, Compact, Mini and Tile/Mosaico layouts.
+- Bundled dashboard Card with Expanded, Compact, Mini and Tile/Mosaico layouts.
+- Automatic bundled Lovelace module-resource registration.
+- Upgrade path from the previous 0.3.0 integration + standalone Card installation.
 
-## 1.0.0 candidate — all-in-one distribution
+## Frontend repository transition
 
-Goal: make Smart Entity Timer a complete one-installation HACS product.
-
-Scope:
-
-- bundle the compiled Smart Entity Timer Card inside the integration;
-- serve it through Home Assistant's static-path API;
-- register it through Home Assistant's frontend extra-module API;
-- preserve `custom:smart-entity-timer-card` and Card API v2;
-- preserve existing timer entity IDs, Config Subentries, storage, automations, notifications and events;
-- retire the separate Card repository from the default HACS catalog after 1.0.0 is verified, while keeping that GitHub repository for frontend development.
+`abel-smart-timer/smart-entity-timer-card` remains the frontend development source, but the user-facing 1.x product is distributed from the integration repository. After 1.0.0 is verified in HACS, request removal of the standalone Card from the default HACS catalog.
 
 ## After 1.0.0
 

@@ -9,7 +9,7 @@ Persistent turn-on/turn-off timers for Home Assistant entities, with the dashboa
 
 ## Smart Entity Timer 1.0.0
 
-Version 1.0.0 turns Smart Entity Timer into an **all-in-one Home Assistant package**. Installing the integration now also installs and registers the Smart Entity Timer Card. A separate HACS download for the card is no longer required.
+Smart Entity Timer 1.0.0 is the first all-in-one release. Installing the integration also installs and registers the Smart Entity Timer Card; a separate HACS card download is no longer required.
 
 ```text
 Smart Entity Timer 1.0.0
@@ -44,9 +44,9 @@ If you currently have both **Smart Entity Timer 0.3.0** and **Smart Entity Timer
 6. Fully reload the browser or close/reopen the Companion App.
 7. Verify that existing Smart Entity Timer cards still render.
 
-The separate card must be removed because 1.0.0 already loads the bundled card. Keeping both installations is unnecessary and can cause an older standalone frontend to be loaded alongside the bundled frontend.
+The standalone card should be removed because 1.0.0 already ships and loads the same custom element from the integration package. Existing card YAML does not need to change.
 
-No dashboard card YAML, timer entity IDs, automations, Config Subentries, notification templates, or persistent timer storage are intentionally changed by this packaging transition.
+No timer entity IDs, automations, Config Subentries, notification templates, persistent timer storage, or Card API v2 contracts are intentionally changed by this packaging transition.
 
 ## Architecture
 
@@ -72,13 +72,19 @@ The timer runs in Home Assistant itself; no dashboard or browser needs to remain
 
 ## Bundled dashboard card
 
-The card JavaScript is shipped inside:
+The compiled card is shipped inside:
 
 ```text
 custom_components/smart_entity_timer/www/smart-entity-timer-card.js
 ```
 
-At startup the integration serves that file through Home Assistant and registers it as a frontend ES module. There is no separate `/hacsfiles/smart-entity-timer-card/...` resource on a clean 1.0.0 installation.
+At startup the integration serves the file through Home Assistant and registers a Lovelace JavaScript module resource using a versioned URL. On a clean 1.0.0 installation the expected resource is:
+
+```text
+/smart_entity_timer_static/smart-entity-timer-card.js?v=1.0.0
+```
+
+There is no separate `/hacsfiles/smart-entity-timer-card/...` resource on a clean 1.0.0 installation.
 
 ### Mini example
 
@@ -185,31 +191,31 @@ Do **not** install Smart Entity Timer Card separately on a clean 1.0.0 installat
 2. Ensure all Smart Entity Timer timers are idle before an upgrade.
 3. Copy `custom_components/smart_entity_timer` into `/config/custom_components/smart_entity_timer`.
 4. Replace the existing files.
-5. If upgrading from the old standalone card, remove its old Lovelace/HACS resource before restarting.
+5. If upgrading from the old standalone card, remove that HACS repository/resource before restarting.
 6. Restart Home Assistant.
 7. Fully reload the frontend.
 
-## Development
+## Frontend development
 
 The frontend source continues to be developed in:
 
 `abel-smart-timer/smart-entity-timer-card`
 
-That repository is the frontend development source. The user-facing 1.x product is distributed from `abel-smart-timer/smart-entity-timer` with the compiled card bundled inside the integration.
+That repository remains public for frontend development, source history and issues. The user-facing 1.x product is distributed from `abel-smart-timer/smart-entity-timer` with the compiled card bundled inside the integration.
 
 ## Validation
 
-Before releasing 1.0.0, validate:
+The 1.0.0 release gate was exercised through the RC2 candidate, including:
 
 - clean HACS installation with only Smart Entity Timer;
-- upgrade from Smart Entity Timer 0.3.0 + standalone Card 0.3.0;
-- existing dashboard cards unchanged;
-- card picker registration;
+- automatic Lovelace resource creation;
+- existing dashboard cards without YAML changes;
+- creation of new timer Config Subentries;
 - Mini, Tile, Compact and Expanded layouts;
-- timer start/cancel/completion and auto-cancel;
+- start, completion, manual cancel and external-state auto-cancel;
 - restart persistence;
-- notifications and lifecycle events;
-- HACS validation and Hassfest.
+- notifications and lifecycle behavior;
+- GitHub Python checks, bundled frontend checks, Hassfest and HACS validation.
 
 See `docs/TEST_PLAN_1.0.0.md` for the release-gate procedure.
 

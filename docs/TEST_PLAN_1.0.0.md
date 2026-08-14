@@ -1,16 +1,18 @@
 # Smart Entity Timer 1.0.0 — Release Gate Test Plan
 
+**Status:** PASSED through 1.0.0-rc2 before final packaging.
+
 This plan validates the all-in-one packaging transition before publishing the immutable `v1.0.0` release.
 
 ## A. Static / repository checks
 
 - A1 `manifest.json` version is `1.0.0`.
-- A2 Manifest dependencies include `frontend` and `http`.
+- A2 Manifest dependencies include `frontend`, `http` and `lovelace`.
 - A3 `const.py` version is `1.0.0`; Card API remains `2`.
 - A4 `www/smart-entity-timer-card.js` exists and reports Card version `1.0.0`.
 - A5 Bundled card keeps `custom:smart-entity-timer-card`.
 - A6 Bundled card still includes Mini and Tile layouts.
-- A7 `frontend.py` uses `async_register_static_paths` and `add_extra_js_url`.
+- A7 `frontend.py` uses `async_register_static_paths`, Lovelace resource create/update logic, and an extra-module fallback.
 - A8 Python compile and unit/regression tests pass.
 - A9 Hassfest passes in GitHub Actions.
 - A10 HACS integration validation passes in GitHub Actions.
@@ -33,19 +35,19 @@ Use a Home Assistant instance where neither Smart Entity Timer nor Smart Entity 
 
 PASS: one integration installation provides both backend and card.
 
-## C. Clean HACS installation from `main` before release
+## C. Clean HACS / pre-release installation before final release
 
-After candidate files are uploaded to GitHub `main` and GitHub Actions is green:
+After candidate files are uploaded and GitHub Actions is green:
 
 1. In the clean test Home Assistant instance, add/find `abel-smart-timer/smart-entity-timer` in HACS.
 2. Choose Download/Redownload.
-3. Under **Need a different version?**, select the default branch `main`.
+3. Select the current release candidate (`v1.0.0-rc2`) or the validated default branch if HACS exposes it.
 4. Restart Home Assistant.
 5. Add/configure Smart Entity Timer.
 6. Confirm the card appears without installing `smart-entity-timer-card`.
 7. Confirm HACS shows only Smart Entity Timer as the downloaded product for this test.
 
-PASS: HACS `main` installs a working all-in-one package before a stable release exists.
+PASS: HACS installs a working all-in-one candidate before the stable release exists.
 
 ## D. Upgrade from the current separated 0.3.0 installation
 
@@ -62,7 +64,7 @@ Procedure:
 1. Wait for every timer to become idle.
 2. Create a full Home Assistant backup.
 3. Record existing status-sensor entity IDs and card YAML.
-4. HACS > Smart Entity Timer > Redownload > choose `main`.
+4. HACS > Smart Entity Timer > Redownload > choose the validated 1.0.0 release candidate.
 5. **Do not restart yet.**
 6. HACS > Smart Entity Timer Card > Remove.
 7. Confirm the old standalone card files/resource are removed by HACS.

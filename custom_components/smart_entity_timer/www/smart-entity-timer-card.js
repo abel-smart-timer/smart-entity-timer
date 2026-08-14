@@ -4,7 +4,7 @@
  * MIT License
  */
 
-const CARD_VERSION = "1.0.0-rc2";
+const CARD_VERSION = "1.0.0";
 const MIN_CARD_API_VERSION = 2;
 const DOMAIN = "smart_entity_timer";
 const ACTION_TURN_ON = "turn_on";

@@ -1,17 +1,15 @@
-Smart Entity Timer 1.0.0 all-in-one candidate
+Smart Entity Timer 1.0.0 final all-in-one release
 
-Added:
+Added in the 1.0.0 line:
 - custom_components/smart_entity_timer/frontend.py
 - custom_components/smart_entity_timer/www/smart-entity-timer-card.js
 - docs/ARCHITECTURE_1.0.md
 - docs/TEST_PLAN_1.0.0.md
 - UPDATE_1.0.0_ES.txt
 
-Changed:
-- custom_components/smart_entity_timer/__init__.py
+Finalized for 1.0.0:
 - custom_components/smart_entity_timer/const.py
 - custom_components/smart_entity_timer/manifest.json
-- tests/test_repository_contract.py
 - README.md
 - CHANGELOG.md
 - INSTALL.txt
@@ -20,5 +18,11 @@ Changed:
 - docs/GITHUB_SETUP.md
 - docs/ROADMAP.md
 - docs/TEST_STATUS.md
+- tests/test_logic.py
+- tests/test_repository_contract.py
+
+Removed from final package:
+- RC2_CI_FIX_ES.md
+- RC2_TEST_STEPS_ES.md
 
 Card API remains v2.
