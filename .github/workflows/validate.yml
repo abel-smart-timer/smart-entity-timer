@@ -23,14 +23,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 24
       - name: Check bundled card syntax
         run: node --check custom_components/smart_entity_timer/www/smart-entity-timer-card.js
       - name: Check bundled card contract
         run: |
-          node -e 'const fs=require("fs"); const s=fs.readFileSync("custom_components/smart_entity_timer/www/smart-entity-timer-card.js","utf8"); if(!s.includes("const CARD_VERSION = \"1.0.0\";")) process.exit(1); if(!s.includes("MIN_CARD_API_VERSION = 2")) process.exit(1); if(!s.includes("smart-entity-timer-card")) process.exit(1);'
+          node -e 'const fs=require("fs"); const m=JSON.parse(fs.readFileSync("custom_components/smart_entity_timer/manifest.json","utf8")); const s=fs.readFileSync("custom_components/smart_entity_timer/www/smart-entity-timer-card.js","utf8"); if(!s.includes(`const CARD_VERSION = "${m.version}";`)) { console.error(`Bundled card version does not match manifest: ${m.version}`); process.exit(1); } if(!s.includes("MIN_CARD_API_VERSION = 2")) { console.error("Card API v2 contract missing"); process.exit(1); } if(!s.includes("smart-entity-timer-card")) { console.error("Custom element contract missing"); process.exit(1); }'
 
   hassfest:
     name: Hassfest
