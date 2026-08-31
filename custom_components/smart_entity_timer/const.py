@@ -6,7 +6,7 @@ from homeassistant.const import Platform
 
 DOMAIN = "smart_entity_timer"
 NAME = "Smart Entity Timer"
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 MIN_HA_VERSION = "2026.7.0"
 CARD_API_VERSION = 2
 

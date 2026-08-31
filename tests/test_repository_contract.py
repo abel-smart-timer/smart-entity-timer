@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+import re
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -92,13 +93,56 @@ class RepositoryContractTests(unittest.TestCase):
         self.assertIn("custom_notification_templates_configured", diagnostics)
 
     def test_translations_expose_timer_subentry_ui(self):
-        for lang in ["en", "es"]:
+        for lang in ["en", "es", "es-419"]:
             payload = json.loads((COMPONENT / "translations" / f"{lang}.json").read_text())
             timer = payload["config_subentries"]["timer"]
             self.assertIn("entry_type", timer)
             self.assertIn("user", timer["initiate_flow"])
             self.assertIn("user", timer["step"])
             self.assertIn("reconfigure", timer["step"])
+
+    def test_english_runtime_translation_matches_strings_source(self):
+        strings_payload = json.loads((COMPONENT / "strings.json").read_text())
+        english_payload = json.loads((COMPONENT / "translations" / "en.json").read_text())
+        self.assertEqual(strings_payload, english_payload)
+
+    def test_config_flow_notification_examples_escape_icu_placeholders(self):
+        placeholder_names = (
+            "timer_name",
+            "target_name",
+            "target_entity",
+            "action",
+            "action_id",
+            "action_past",
+            "duration",
+            "duration_minutes",
+            "result",
+            "reason",
+            "finished_at",
+            "restored",
+            "default_title",
+            "default_message",
+        )
+        unescaped = re.compile(
+            r"(?<!')\{(?:" + "|".join(re.escape(name) for name in placeholder_names) + r")\}(?!')"
+        )
+
+        for lang in ["en", "es", "es-419"]:
+            payload = json.loads((COMPONENT / "translations" / f"{lang}.json").read_text())
+            steps = payload["config_subentries"]["timer"]["step"]
+            for step_name in ["user", "reconfigure"]:
+                step = steps[step_name]
+                self.assertIsNone(
+                    unescaped.search(step["description"]),
+                    f"{lang}/{step_name} description contains an unescaped ICU placeholder",
+                )
+                for key, text in step["data_description"].items():
+                    if not key.startswith("notification_"):
+                        continue
+                    self.assertIsNone(
+                        unescaped.search(text),
+                        f"{lang}/{step_name}/{key} contains an unescaped ICU placeholder",
+                    )
 
     def test_all_in_one_frontend_is_bundled(self):
         manifest = json.loads((COMPONENT / "manifest.json").read_text())

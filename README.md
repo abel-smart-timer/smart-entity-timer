@@ -4,16 +4,16 @@
 
 Persistent turn-on/turn-off timers for Home Assistant entities, with the dashboard card included in the same HACS integration package.
 
-**Version:** 1.0.2  
+**Version:** 1.0.3  
 **Minimum Home Assistant version:** 2026.7.0  
 **Card API:** 2  
 **Installation:** one HACS integration package — backend + Smart Entity Timer Card
 
-## Smart Entity Timer 1.0.2
+## Smart Entity Timer 1.0.3
 
 Smart Entity Timer is distributed as one product: installing the integration also installs and registers the **Smart Entity Timer Card**. A separate HACS card download is not required.
 
-Version 1.0.2 is a visual documentation and presentation update. The README now uses real Smart Entity Timer card screenshots to show the product before users install it. Timer behavior, Card API v2, entity IDs, Config Subentries, services, notifications and lifecycle events are unchanged.
+Version 1.0.3 is a configuration-translation hotfix. It prevents Home Assistant/FormatJS `MISSING_VALUE` errors when the Add/Reconfigure Timer form displays notification-template examples, adds an explicit `es-419` translation for Latin American Spanish, and adds regression coverage for literal notification placeholders. Timer execution, persistence, entity IDs, Config Subentries, services, Card API v2, notification delivery behavior and lifecycle events are unchanged.
 
 ```text
 Smart Entity Timer
@@ -53,21 +53,22 @@ Do **not** install Smart Entity Timer Card as a second standalone HACS repositor
 
 After Home Assistant starts, the integration serves the bundled card and registers it automatically as a Lovelace JavaScript module.
 
-Expected 1.0.2 resource:
+Expected 1.0.3 resource:
 
 ```text
-/smart_entity_timer_static/smart-entity-timer-card.js?v=1.0.2
+/smart_entity_timer_static/smart-entity-timer-card.js?v=1.0.3
 ```
 
-### Upgrade from 1.0.1
+### Upgrade from 1.0.2
 
 1. Create a Home Assistant backup.
-2. Update **Smart Entity Timer** to 1.0.2 from HACS.
+2. Update **Smart Entity Timer** to 1.0.3 from HACS.
 3. Restart Home Assistant.
 4. Fully reload the browser or close/reopen the Companion App.
-5. Existing timers and dashboard cards should continue working without YAML changes.
+5. Open an existing timer's **Configure** flow and confirm the notification-template examples render without frontend translation errors.
+6. Existing timers and dashboard cards should continue working without YAML changes.
 
-No timer entity IDs, Config Subentries, persistent storage, notification templates, lifecycle events, Card API contracts, or dashboard card options are intentionally changed in 1.0.2.
+No timer entity IDs, Config Subentries, persistent storage format, notification-template syntax, lifecycle events, Card API contracts, or dashboard card options are intentionally changed in 1.0.3.
 
 ### Upgrade from 0.3.0 + standalone Smart Entity Timer Card
 
@@ -75,7 +76,7 @@ If you still have both old repositories installed:
 
 1. Wait for every Smart Entity Timer timer to become idle.
 2. Create a Home Assistant backup.
-3. Update Smart Entity Timer to 1.0.2.
+3. Update Smart Entity Timer to 1.0.3.
 4. **Before restarting Home Assistant, remove the standalone Smart Entity Timer Card repository from HACS.**
 5. Restart Home Assistant.
 6. Fully reload the browser or close/reopen the Companion App.
@@ -447,7 +448,7 @@ Custom notification title/message fields support:
 
 `{timer_name}`, `{target_name}`, `{target_entity}`, `{action}`, `{action_id}`, `{action_past}`, `{duration}`, `{duration_minutes}`, `{result}`, `{reason}`, `{finished_at}`, `{restored}`, `{default_title}`, `{default_message}`.
 
-Leave a custom field blank to preserve the built-in message.
+Leave a custom field blank to preserve the built-in message. These placeholders are notification-template variables; in the configuration UI their examples are escaped as literal ICU text so Home Assistant does not try to format them as translation variables.
 
 ## Lifecycle events
 
@@ -508,7 +509,7 @@ The 1.0.0 release gate validated the all-in-one architecture on a real Home Assi
 - notifications and lifecycle behavior;
 - GitHub Python checks, bundled frontend checks, Hassfest, and HACS validation.
 
-Version 1.0.2 does not alter those runtime contracts; it adds a visual product presentation based on real Smart Entity Timer card screenshots.
+Version 1.0.3 preserves those runtime contracts and adds regression coverage for config-flow translation placeholders plus explicit Latin American Spanish (`es-419`) runtime translations.
 
 See `docs/TEST_PLAN_1.0.0.md` for the original all-in-one release-gate procedure.
 
