@@ -13,7 +13,7 @@ Persistent turn-on/turn-off timers for Home Assistant entities, with the dashboa
 
 Smart Entity Timer is distributed as one product: installing the integration also installs and registers the **Smart Entity Timer Card**. A separate HACS card download is not required.
 
-Version 1.0.3 is a configuration-translation hotfix. It prevents Home Assistant/FormatJS `MISSING_VALUE` errors when the Add/Reconfigure Timer form displays notification-template examples, adds an explicit `es-419` translation for Latin American Spanish, and adds regression coverage for literal notification placeholders. Timer execution, persistence, entity IDs, Config Subentries, services, Card API v2, notification delivery behavior and lifecycle events are unchanged.
+Version 1.0.3 is a configuration-translation hotfix. It prevents Home Assistant/FormatJS `MISSING_VALUE` errors when the Add/Reconfigure Timer form displays notification-template examples, adds an explicit `es-419` translation for Latin American Spanish, and adds regression coverage that prevents notification-template syntax from being mistaken for Home Assistant translation arguments. Timer execution, persistence, entity IDs, Config Subentries, services, Card API v2, notification delivery behavior and lifecycle events are unchanged.
 
 ```text
 Smart Entity Timer
@@ -448,7 +448,7 @@ Custom notification title/message fields support:
 
 `{timer_name}`, `{target_name}`, `{target_entity}`, `{action}`, `{action_id}`, `{action_past}`, `{duration}`, `{duration_minutes}`, `{result}`, `{reason}`, `{finished_at}`, `{restored}`, `{default_title}`, `{default_message}`.
 
-Leave a custom field blank to preserve the built-in message. These placeholders are notification-template variables; in the configuration UI their examples are escaped as literal ICU text so Home Assistant does not try to format them as translation variables.
+Leave a custom field blank to preserve the built-in message. In the configuration UI, the supported variable names are listed without literal curly-brace syntax because Home Assistant reserves curly braces in translatable strings for runtime translation arguments. When entering a custom template, use the exact brace syntax shown above.
 
 ## Lifecycle events
 
@@ -509,7 +509,7 @@ The 1.0.0 release gate validated the all-in-one architecture on a real Home Assi
 - notifications and lifecycle behavior;
 - GitHub Python checks, bundled frontend checks, Hassfest, and HACS validation.
 
-Version 1.0.3 preserves those runtime contracts and adds regression coverage for config-flow translation placeholders plus explicit Latin American Spanish (`es-419`) runtime translations.
+Version 1.0.3 preserves those runtime contracts and adds regression coverage that prevents notification-template variables from becoming config-flow translation placeholders, plus explicit Latin American Spanish (`es-419`) runtime translations.
 
 See `docs/TEST_PLAN_1.0.0.md` for the original all-in-one release-gate procedure.
 

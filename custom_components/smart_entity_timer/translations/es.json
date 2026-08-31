@@ -15,7 +15,7 @@
       "step": {
         "user": {
           "title": "Agregar temporizador",
-          "description": "Crea un temporizador administrado dentro de Smart Entity Timer. Cada temporizador controla una entidad y conserva su propio estado, preferencias y notificaciones. Variables disponibles para títulos y mensajes: '{timer_name}', '{target_name}', '{target_entity}', '{action}', '{action_id}', '{action_past}', '{duration}', '{duration_minutes}', '{result}', '{reason}', '{finished_at}', '{restored}', '{default_title}', '{default_message}'. Deja un campo personalizado vacío para conservar el texto integrado.",
+          "description": "Crea un temporizador administrado dentro de Smart Entity Timer. Cada temporizador controla una entidad y conserva su propio estado, preferencias y notificaciones. Las plantillas de notificación admiten estas variables: `timer_name`, `target_name`, `target_entity`, `action`, `action_id`, `action_past`, `duration`, `duration_minutes`, `result`, `reason`, `finished_at`, `restored`, `default_title` y `default_message`. Al escribir una plantilla personalizada, encierra el nombre de la variable entre llaves. Deja cualquier campo personalizado vacío para conservar el texto integrado.",
           "data": {
             "name": "Nombre del temporizador",
             "target_entity": "Entidad objetivo",
@@ -45,21 +45,21 @@
             "execute_expired_turn_off": "Recomendado: activado. Si Home Assistant estaba apagado cuando venció un temporizador OFF, apaga la entidad al iniciar.",
             "execute_expired_turn_on": "Recomendado: desactivado. Evita encendidos inesperados después de una interrupción prolongada.",
             "confirmation_timeout": "Tiempo máximo para que la entidad confirme el estado solicitado.",
-            "notification_completed_title": "Opcional. Ejemplo: Temporizador de '{target_name}'",
-            "notification_completed_message": "Opcional. Ejemplo: '{target_name}' fue '{action_past}' después de '{duration}'.",
-            "notification_error_title": "Opcional. Ejemplo: Error del temporizador — '{target_name}'",
-            "notification_error_message": "Opcional. Ejemplo: '{target_name}' no pudo completar '{action}'. Motivo: '{reason}'.",
-            "notification_skipped_title": "Opcional. Ejemplo: Acción del temporizador omitida",
-            "notification_skipped_message": "Opcional. Ejemplo: Se omitió '{action}' para '{target_name}'. Motivo: '{reason}'.",
-            "notification_manual_cancel_title": "Opcional. Ejemplo: Temporizador cancelado",
-            "notification_manual_cancel_message": "Opcional. Ejemplo: '{timer_name}' fue cancelado manualmente.",
-            "notification_auto_cancel_title": "Opcional. Ejemplo: Temporizador cancelado automáticamente",
-            "notification_auto_cancel_message": "Opcional. Ejemplo: '{target_name}' alcanzó el estado solicitado antes de terminar el temporizador."
+            "notification_completed_title": "Opcional. Ejemplo de salida: Temporizador de Luz de cocina. Admite `target_name`.",
+            "notification_completed_message": "Opcional. Ejemplo de salida: Luz de cocina fue apagada después de 1 hora. Admite `target_name`, `action_past` y `duration`.",
+            "notification_error_title": "Opcional. Ejemplo de salida: Error del temporizador — Luz de cocina. Admite `target_name`.",
+            "notification_error_message": "Opcional. Ejemplo de salida: Luz de cocina no pudo completar apagar. Motivo: tiempo de confirmación agotado. Admite `target_name`, `action` y `reason`.",
+            "notification_skipped_title": "Opcional. Ejemplo de salida: Acción del temporizador omitida.",
+            "notification_skipped_message": "Opcional. Ejemplo de salida: Se omitió apagar para Luz de cocina. Motivo: política de reinicio. Admite `action`, `target_name` y `reason`.",
+            "notification_manual_cancel_title": "Opcional. Ejemplo de salida: Temporizador cancelado.",
+            "notification_manual_cancel_message": "Opcional. Ejemplo de salida: Temporizador del baño fue cancelado manualmente. Admite `timer_name`.",
+            "notification_auto_cancel_title": "Opcional. Ejemplo de salida: Temporizador cancelado automáticamente.",
+            "notification_auto_cancel_message": "Opcional. Ejemplo de salida: Luz de cocina alcanzó el estado solicitado antes de terminar el temporizador. Admite `target_name`."
           }
         },
         "reconfigure": {
           "title": "Configurar temporizador",
-          "description": "Modifica la entidad objetivo y todas las preferencias de este temporizador. Los cambios se aplican al guardar. No se puede reconfigurar mientras está activo. Variables disponibles para títulos y mensajes: '{timer_name}', '{target_name}', '{target_entity}', '{action}', '{action_id}', '{action_past}', '{duration}', '{duration_minutes}', '{result}', '{reason}', '{finished_at}', '{restored}', '{default_title}', '{default_message}'. Deja un campo personalizado vacío para conservar el texto integrado.",
+          "description": "Modifica la entidad objetivo y todas las preferencias de este temporizador. Los cambios se aplican al guardar. No se puede reconfigurar mientras está activo. Las plantillas de notificación admiten estas variables: `timer_name`, `target_name`, `target_entity`, `action`, `action_id`, `action_past`, `duration`, `duration_minutes`, `result`, `reason`, `finished_at`, `restored`, `default_title` y `default_message`. Al escribir una plantilla personalizada, encierra el nombre de la variable entre llaves. Deja cualquier campo personalizado vacío para conservar el texto integrado.",
           "data": {
             "name": "Nombre del temporizador",
             "target_entity": "Entidad objetivo",
@@ -89,16 +89,16 @@
             "execute_expired_turn_off": "Recomendado: activado. Si Home Assistant estaba apagado cuando venció un temporizador OFF, apaga la entidad al iniciar.",
             "execute_expired_turn_on": "Recomendado: desactivado. Evita encendidos inesperados después de una interrupción prolongada.",
             "confirmation_timeout": "Tiempo máximo para que la entidad confirme el estado solicitado.",
-            "notification_completed_title": "Opcional. Ejemplo: Temporizador de '{target_name}'",
-            "notification_completed_message": "Opcional. Ejemplo: '{target_name}' fue '{action_past}' después de '{duration}'.",
-            "notification_error_title": "Opcional. Ejemplo: Error del temporizador — '{target_name}'",
-            "notification_error_message": "Opcional. Ejemplo: '{target_name}' no pudo completar '{action}'. Motivo: '{reason}'.",
-            "notification_skipped_title": "Opcional. Ejemplo: Acción del temporizador omitida",
-            "notification_skipped_message": "Opcional. Ejemplo: Se omitió '{action}' para '{target_name}'. Motivo: '{reason}'.",
-            "notification_manual_cancel_title": "Opcional. Ejemplo: Temporizador cancelado",
-            "notification_manual_cancel_message": "Opcional. Ejemplo: '{timer_name}' fue cancelado manualmente.",
-            "notification_auto_cancel_title": "Opcional. Ejemplo: Temporizador cancelado automáticamente",
-            "notification_auto_cancel_message": "Opcional. Ejemplo: '{target_name}' alcanzó el estado solicitado antes de terminar el temporizador."
+            "notification_completed_title": "Opcional. Ejemplo de salida: Temporizador de Luz de cocina. Admite `target_name`.",
+            "notification_completed_message": "Opcional. Ejemplo de salida: Luz de cocina fue apagada después de 1 hora. Admite `target_name`, `action_past` y `duration`.",
+            "notification_error_title": "Opcional. Ejemplo de salida: Error del temporizador — Luz de cocina. Admite `target_name`.",
+            "notification_error_message": "Opcional. Ejemplo de salida: Luz de cocina no pudo completar apagar. Motivo: tiempo de confirmación agotado. Admite `target_name`, `action` y `reason`.",
+            "notification_skipped_title": "Opcional. Ejemplo de salida: Acción del temporizador omitida.",
+            "notification_skipped_message": "Opcional. Ejemplo de salida: Se omitió apagar para Luz de cocina. Motivo: política de reinicio. Admite `action`, `target_name` y `reason`.",
+            "notification_manual_cancel_title": "Opcional. Ejemplo de salida: Temporizador cancelado.",
+            "notification_manual_cancel_message": "Opcional. Ejemplo de salida: Temporizador del baño fue cancelado manualmente. Admite `timer_name`.",
+            "notification_auto_cancel_title": "Opcional. Ejemplo de salida: Temporizador cancelado automáticamente.",
+            "notification_auto_cancel_message": "Opcional. Ejemplo de salida: Luz de cocina alcanzó el estado solicitado antes de terminar el temporizador. Admite `target_name`."
           }
         }
       },

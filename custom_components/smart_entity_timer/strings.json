@@ -15,7 +15,7 @@
       "step": {
         "user": {
           "title": "Add timer",
-          "description": "Create a timer managed inside Smart Entity Timer. Each timer controls one entity and keeps its own state, preferences, and notifications. Available variables for notification titles and messages: '{timer_name}', '{target_name}', '{target_entity}', '{action}', '{action_id}', '{action_past}', '{duration}', '{duration_minutes}', '{result}', '{reason}', '{finished_at}', '{restored}', '{default_title}', '{default_message}'. Leave any custom field blank to keep the built-in text.",
+          "description": "Create a timer managed inside Smart Entity Timer. Each timer controls one entity and keeps its own state, preferences, and notifications. Notification templates support these variable names: `timer_name`, `target_name`, `target_entity`, `action`, `action_id`, `action_past`, `duration`, `duration_minutes`, `result`, `reason`, `finished_at`, `restored`, `default_title`, and `default_message`. When writing a custom template, wrap the variable name in curly braces. Leave any custom field blank to keep the built-in text.",
           "data": {
             "name": "Timer name",
             "target_entity": "Target entity",
@@ -45,21 +45,21 @@
             "execute_expired_turn_off": "Recommended: enabled. If Home Assistant was offline when an OFF timer expired, turn the entity off after startup.",
             "execute_expired_turn_on": "Recommended: disabled. Prevents unexpected activation after a long outage.",
             "confirmation_timeout": "How long to wait for the entity to confirm the requested state.",
-            "notification_completed_title": "Optional. Example: Timer for '{target_name}'",
-            "notification_completed_message": "Optional. Example: '{target_name}' was '{action_past}' after '{duration}'.",
-            "notification_error_title": "Optional. Example: Timer error — '{target_name}'",
-            "notification_error_message": "Optional. Example: '{target_name}' could not complete '{action}'. Reason: '{reason}'.",
-            "notification_skipped_title": "Optional. Example: Timer action skipped",
-            "notification_skipped_message": "Optional. Example: '{action}' for '{target_name}' was skipped. Reason: '{reason}'.",
-            "notification_manual_cancel_title": "Optional. Example: Timer cancelled",
-            "notification_manual_cancel_message": "Optional. Example: '{timer_name}' was cancelled manually.",
-            "notification_auto_cancel_title": "Optional. Example: Timer cancelled automatically",
-            "notification_auto_cancel_message": "Optional. Example: '{target_name}' reached the requested state before the timer finished."
+            "notification_completed_title": "Optional. Example output: Timer for Kitchen light. Supports `target_name`.",
+            "notification_completed_message": "Optional. Example output: Kitchen light was turned off after 1 hour. Supports `target_name`, `action_past`, and `duration`.",
+            "notification_error_title": "Optional. Example output: Timer error — Kitchen light. Supports `target_name`.",
+            "notification_error_message": "Optional. Example output: Kitchen light could not complete turn off. Reason: confirmation timeout. Supports `target_name`, `action`, and `reason`.",
+            "notification_skipped_title": "Optional. Example output: Timer action skipped.",
+            "notification_skipped_message": "Optional. Example output: Turn off for Kitchen light was skipped. Reason: restart policy. Supports `action`, `target_name`, and `reason`.",
+            "notification_manual_cancel_title": "Optional. Example output: Timer cancelled.",
+            "notification_manual_cancel_message": "Optional. Example output: Bathroom timer was cancelled manually. Supports `timer_name`.",
+            "notification_auto_cancel_title": "Optional. Example output: Timer cancelled automatically.",
+            "notification_auto_cancel_message": "Optional. Example output: Kitchen light reached the requested state before the timer finished. Supports `target_name`."
           }
         },
         "reconfigure": {
           "title": "Configure timer",
-          "description": "Change the target entity and all preferences for this timer. Changes are applied when saved. An active timer cannot be reconfigured. Available variables for notification titles and messages: '{timer_name}', '{target_name}', '{target_entity}', '{action}', '{action_id}', '{action_past}', '{duration}', '{duration_minutes}', '{result}', '{reason}', '{finished_at}', '{restored}', '{default_title}', '{default_message}'. Leave any custom field blank to keep the built-in text.",
+          "description": "Change the target entity and all preferences for this timer. Changes are applied when saved. An active timer cannot be reconfigured. Notification templates support these variable names: `timer_name`, `target_name`, `target_entity`, `action`, `action_id`, `action_past`, `duration`, `duration_minutes`, `result`, `reason`, `finished_at`, `restored`, `default_title`, and `default_message`. When writing a custom template, wrap the variable name in curly braces. Leave any custom field blank to keep the built-in text.",
           "data": {
             "name": "Timer name",
             "target_entity": "Target entity",
@@ -89,16 +89,16 @@
             "execute_expired_turn_off": "Recommended: enabled. If Home Assistant was offline when an OFF timer expired, turn the entity off after startup.",
             "execute_expired_turn_on": "Recommended: disabled. Prevents unexpected activation after a long outage.",
             "confirmation_timeout": "How long to wait for the entity to confirm the requested state.",
-            "notification_completed_title": "Optional. Example: Timer for '{target_name}'",
-            "notification_completed_message": "Optional. Example: '{target_name}' was '{action_past}' after '{duration}'.",
-            "notification_error_title": "Optional. Example: Timer error — '{target_name}'",
-            "notification_error_message": "Optional. Example: '{target_name}' could not complete '{action}'. Reason: '{reason}'.",
-            "notification_skipped_title": "Optional. Example: Timer action skipped",
-            "notification_skipped_message": "Optional. Example: '{action}' for '{target_name}' was skipped. Reason: '{reason}'.",
-            "notification_manual_cancel_title": "Optional. Example: Timer cancelled",
-            "notification_manual_cancel_message": "Optional. Example: '{timer_name}' was cancelled manually.",
-            "notification_auto_cancel_title": "Optional. Example: Timer cancelled automatically",
-            "notification_auto_cancel_message": "Optional. Example: '{target_name}' reached the requested state before the timer finished."
+            "notification_completed_title": "Optional. Example output: Timer for Kitchen light. Supports `target_name`.",
+            "notification_completed_message": "Optional. Example output: Kitchen light was turned off after 1 hour. Supports `target_name`, `action_past`, and `duration`.",
+            "notification_error_title": "Optional. Example output: Timer error — Kitchen light. Supports `target_name`.",
+            "notification_error_message": "Optional. Example output: Kitchen light could not complete turn off. Reason: confirmation timeout. Supports `target_name`, `action`, and `reason`.",
+            "notification_skipped_title": "Optional. Example output: Timer action skipped.",
+            "notification_skipped_message": "Optional. Example output: Turn off for Kitchen light was skipped. Reason: restart policy. Supports `action`, `target_name`, and `reason`.",
+            "notification_manual_cancel_title": "Optional. Example output: Timer cancelled.",
+            "notification_manual_cancel_message": "Optional. Example output: Bathroom timer was cancelled manually. Supports `timer_name`.",
+            "notification_auto_cancel_title": "Optional. Example output: Timer cancelled automatically.",
+            "notification_auto_cancel_message": "Optional. Example output: Kitchen light reached the requested state before the timer finished. Supports `target_name`."
           }
         }
       },

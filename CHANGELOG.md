@@ -1,14 +1,14 @@
 # Changelog
 
-## 1.0.3 — 2026-08-30
+## 1.0.3 — 2026-08-31
 
 Configuration-translation hotfix.
 
 - Fixed Home Assistant frontend `formatjs Error: MISSING_VALUE` log spam when opening Add/Reconfigure Timer forms whose notification examples contain literal `{placeholder}` text.
-- Escaped all notification-template placeholders in config-flow descriptions and notification-field examples using ICU literal syntax so the UI shows the braces without treating them as translation variables.
+- Removed literal notification-template brace syntax from translatable config-flow help because Home Assistant reserves curly-brace placeholders for runtime translation arguments. The form now lists the supported variable names in code style and explains that users should wrap a variable name in curly braces when entering a custom template.
 - Added `translations/es-419.json` so Latin American Spanish installations receive the intended Spanish config-flow text instead of falling back to English.
 - Kept empty notification destination and custom title/message fields fully valid; no notification target is required and blank templates continue using built-in text.
-- Added repository regression coverage for unescaped ICU placeholders in the relevant config-flow translation strings and for `es-419` availability.
+- Added repository regression coverage that rejects notification-template brace placeholders from config-flow help while ensuring every supported variable name remains documented, plus coverage for `es-419` availability.
 - Bumped package/backend/bundled-card metadata to 1.0.3, keeping Card API v2 and all existing timer/card configuration compatible.
 - No timer runtime, migration, entity-ID, Config Subentry, persistent-storage, service, notification-delivery, lifecycle-event, or dashboard-card behavior changes.
 

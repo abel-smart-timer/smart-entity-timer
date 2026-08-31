@@ -106,7 +106,7 @@ class RepositoryContractTests(unittest.TestCase):
         english_payload = json.loads((COMPONENT / "translations" / "en.json").read_text())
         self.assertEqual(strings_payload, english_payload)
 
-    def test_config_flow_notification_examples_escape_icu_placeholders(self):
+    def test_config_flow_notification_help_has_no_translation_placeholders(self):
         placeholder_names = (
             "timer_name",
             "target_name",
@@ -123,8 +123,8 @@ class RepositoryContractTests(unittest.TestCase):
             "default_title",
             "default_message",
         )
-        unescaped = re.compile(
-            r"(?<!')\{(?:" + "|".join(re.escape(name) for name in placeholder_names) + r")\}(?!')"
+        placeholder = re.compile(
+            r"\{(?:" + "|".join(re.escape(name) for name in placeholder_names) + r")\}"
         )
 
         for lang in ["en", "es", "es-419"]:
@@ -133,15 +133,21 @@ class RepositoryContractTests(unittest.TestCase):
             for step_name in ["user", "reconfigure"]:
                 step = steps[step_name]
                 self.assertIsNone(
-                    unescaped.search(step["description"]),
-                    f"{lang}/{step_name} description contains an unescaped ICU placeholder",
+                    placeholder.search(step["description"]),
+                    f"{lang}/{step_name} description contains a translation placeholder",
                 )
                 for key, text in step["data_description"].items():
                     if not key.startswith("notification_"):
                         continue
                     self.assertIsNone(
-                        unescaped.search(text),
-                        f"{lang}/{step_name}/{key} contains an unescaped ICU placeholder",
+                        placeholder.search(text),
+                        f"{lang}/{step_name}/{key} contains a translation placeholder",
+                    )
+                for name in placeholder_names:
+                    self.assertIn(
+                        f"`{name}`",
+                        step["description"],
+                        f"{lang}/{step_name} no longer documents variable {name}",
                     )
 
     def test_all_in_one_frontend_is_bundled(self):
